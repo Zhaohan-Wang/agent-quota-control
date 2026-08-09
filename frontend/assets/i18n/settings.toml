@@ -1,10 +1,10 @@
-[appearance]
-en = "Appearance"
-zh-CN = "外观"
+[general]
+en = "General"
+zh-CN = "通用"
 
 [appearance_mode]
-en = "Appearance mode"
-zh-CN = "外观模式"
+en = "Appearance"
+zh-CN = "外观"
 
 [theme_light]
 en = "Light"
@@ -15,16 +15,12 @@ en = "Dark"
 zh-CN = "深色"
 
 [theme_system]
-en = "System"
-zh-CN = "跟随系统"
-
-[language]
-en = "Language"
-zh-CN = "语言"
+en = "Automatic"
+zh-CN = "自动"
 
 [language_mode]
-en = "Interface language"
-zh-CN = "界面语言"
+en = "Language"
+zh-CN = "语言"
 
 [locale_zh_cn]
 en = "简体中文"
@@ -39,20 +35,36 @@ en = "Network proxy"
 zh-CN = "网络代理"
 
 [proxy_auto_hint]
-en = "Auto tries your URL first, then common local ports."
-zh-CN = "「自动」会先试你填的地址，再尝试常用本地端口。"
+en = "Automatic uses the specified address first, then tries common local proxy ports."
+zh-CN = "“自动”会优先使用指定的地址，再尝试常用的本地代理端口。"
+
+[proxy_test_result]
+en = "{service}: {result}"
+zh-CN = "{service}：{result}"
+
+[proxy_save_failed]
+en = "Couldn’t apply the proxy settings. Try again."
+zh-CN = "无法应用代理设置。请再试一次。"
+
+[proxy_test_failed]
+en = "Couldn’t test the connection for {service}. Try again."
+zh-CN = "无法测试 {service} 的连接。请再试一次。"
 
 [apply_changes]
-en = "Apply changes"
-zh-CN = "应用更改"
+en = "Apply"
+zh-CN = "应用"
 
 [save_proxy_settings]
-en = "Save proxy settings"
-zh-CN = "保存代理设置"
+en = "Apply proxy settings"
+zh-CN = "应用代理设置"
 
 [proxy_mode]
 en = "{service} proxy mode"
 zh-CN = "{service} 代理模式"
+
+[proxy_mode_label]
+en = "Mode"
+zh-CN = "模式"
 
 [proxy_url]
 en = "Proxy URL"
@@ -62,30 +74,34 @@ zh-CN = "代理 URL"
 en = "{service} proxy URL"
 zh-CN = "{service} 代理 URL"
 
+[proxy_url_placeholder]
+en = "http://127.0.0.1:7897"
+zh-CN = "http://127.0.0.1:7897"
+
 [test_connection]
 en = "Test connection"
 zh-CN = "测试连接"
 
 [mode_auto]
-en = "Auto"
+en = "Automatic"
 zh-CN = "自动"
 
 [mode_on]
-en = "On"
-zh-CN = "开启"
+en = "Always Use Proxy"
+zh-CN = "始终使用代理"
 
 [mode_off]
-en = "Off"
-zh-CN = "关闭"
+en = "Direct Connection"
+zh-CN = "直接连接"
 
 [config_dir]
-en = "Config folder"
-zh-CN = "配置目录"
+en = "Data folder"
+zh-CN = "数据文件夹"
 
 [config_dir_hint]
-en = "Account settings and usage history are stored in a local folder."
-zh-CN = "账号配置与用量历史会保存在本机目录中。"
+en = "Account settings and usage history are stored in this folder on your Mac."
+zh-CN = "账号设置和用量历史记录储存在此 Mac 上的这个文件夹中。"
 
 [reveal_in_finder]
 en = "Show in Finder"
-zh-CN = "在访达中显示"
+zh-CN = "在“访达”中显示"

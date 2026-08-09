@@ -1,4 +1,3 @@
-import { Activity, PanelTop } from "lucide-react";
 import { api } from "../api";
 import { useTranslations } from "../i18n";
 import type { DashboardState, StatusBarDisplayConfig } from "../types";
@@ -53,77 +52,79 @@ export function MonitoringSettings({ state, onChange }: MonitoringSettingsProps)
 
   return (
     <>
-      <section className="panel">
-        <div className="panel-title">
-          <Activity size={15} strokeWidth={1.75} aria-hidden />
+      <section className="settings-group" aria-labelledby="monitoring-services-title">
+        <h3 className="settings-group-title" id="monitoring-services-title">
           {t("services_title")}
-        </div>
-        {services.map((service) => {
-          const name = common(service.nameKey);
-          const monitored = state.config.selectedServices.includes(service.id);
-          return (
-            <div className="switch-row" key={service.id}>
-              <span>
-                <strong>{name}</strong>
-              </span>
-              <div className="service-switches">
-                <label>
-                  <span>{t("monitor")}</span>
-                  <ToggleSwitch
-                    aria-label={t("monitor_service", { service: name })}
-                    checked={monitored}
-                    onChange={(enabled) =>
-                      void updateServiceList(
-                        service.id,
-                        enabled,
-                        state.config.selectedServices,
-                        api.setSelectedServices,
-                      )
-                    }
-                  />
-                </label>
-                <label>
-                  <span>{t("menu_bar")}</span>
-                  <ToggleSwitch
-                    aria-label={t("show_in_menu_bar", { service: name })}
-                    disabled={!monitored}
-                    checked={state.config.statusBarServices.includes(service.id)}
-                    onChange={(enabled) =>
-                      void updateServiceList(
-                        service.id,
-                        enabled,
-                        state.config.statusBarServices,
-                        api.setStatusBarServices,
-                      )
-                    }
-                  />
-                </label>
+        </h3>
+        <div className="panel settings-group-panel">
+          {services.map((service) => {
+            const name = common(service.nameKey);
+            const monitored = state.config.selectedServices.includes(service.id);
+            return (
+              <div className="switch-row" key={service.id}>
+                <span>
+                  <strong>{name}</strong>
+                </span>
+                <div className="service-switches">
+                  <div className="service-switch">
+                    <span>{t("monitor")}</span>
+                    <ToggleSwitch
+                      aria-label={t("monitor_service", { service: name })}
+                      checked={monitored}
+                      onChange={(enabled) =>
+                        void updateServiceList(
+                          service.id,
+                          enabled,
+                          state.config.selectedServices,
+                          api.setSelectedServices,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="service-switch">
+                    <span>{t("menu_bar")}</span>
+                    <ToggleSwitch
+                      aria-label={t("show_in_menu_bar", { service: name })}
+                      disabled={!monitored}
+                      checked={state.config.statusBarServices.includes(service.id)}
+                      onChange={(enabled) =>
+                        void updateServiceList(
+                          service.id,
+                          enabled,
+                          state.config.statusBarServices,
+                          api.setStatusBarServices,
+                        )
+                      }
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </section>
 
-      <section className="panel">
-        <div className="panel-title">
-          <PanelTop size={15} strokeWidth={1.75} aria-hidden />
+      <section className="settings-group" aria-labelledby="monitoring-menubar-title">
+        <h3 className="settings-group-title" id="monitoring-menubar-title">
           {t("menu_bar_style")}
+        </h3>
+        <div className="panel settings-group-panel">
+          {displayOptions.map(({ key, labelKey }) => {
+            const label = t(labelKey);
+            return (
+              <div className="switch-row" key={key}>
+                <span>
+                  <strong>{label}</strong>
+                </span>
+                <ToggleSwitch
+                  aria-label={t("menu_bar_toggle", { label })}
+                  checked={state.config.statusBarDisplay[key]}
+                  onChange={(enabled) => void updateDisplay(key, enabled)}
+                />
+              </div>
+            );
+          })}
         </div>
-        {displayOptions.map(({ key, labelKey }) => {
-          const label = t(labelKey);
-          return (
-            <div className="switch-row" key={key}>
-              <span>
-                <strong>{label}</strong>
-              </span>
-              <ToggleSwitch
-                aria-label={t("menu_bar_toggle", { label })}
-                checked={state.config.statusBarDisplay[key]}
-                onChange={(enabled) => void updateDisplay(key, enabled)}
-              />
-            </div>
-          );
-        })}
       </section>
     </>
   );

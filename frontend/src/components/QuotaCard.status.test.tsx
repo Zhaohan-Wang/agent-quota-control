@@ -22,10 +22,10 @@ function cardWithState(state: SufficiencyState): CardSnapshot {
 
 describe("QuotaCard status badge icons", () => {
   it.each([
-    ["enough", "够用", "lucide-circle-check"],
-    ["tight", "偏紧", "lucide-circle-alert"],
-    ["not_enough", "不够", "lucide-circle-x"],
-    ["unknown", "等待数据", "lucide-circle-dashed"],
+    ["enough", "余量充足", "lucide-circle-check"],
+    ["tight", "余量较少", "lucide-circle-alert"],
+    ["not_enough", "可能不足", "lucide-circle-x"],
+    ["unknown", "正在分析", "lucide-circle-dashed"],
   ] as const)(
     "uses a meaningful icon for %s",
     (state, label, iconClass) => {
@@ -40,4 +40,47 @@ describe("QuotaCard status badge icons", () => {
       expect(svg?.getAttribute("class") ?? "").toContain(iconClass);
     },
   );
+
+  it("describes a forecast as a forecast, not a completed exhaustion", () => {
+    render(
+      <QuotaCard
+        card={{
+          ...cardWithState("not_enough"),
+          weeklyEstimate: {
+            state: "not_enough",
+            projectedUtilization: 110,
+            lastsForSecs: 7_200,
+            exhaustedBeforeResetSecs: 86_400,
+          },
+        }}
+        iconSrc="icon.png"
+      />,
+    );
+
+    expect(
+      screen.getByText("按照目前的用量，预计还可使用约 2 小时。"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/本周期已/)).not.toBeInTheDocument();
+  });
+
+  it("uses past tense only after exhaustion has actually happened", () => {
+    render(
+      <QuotaCard
+        card={{
+          ...cardWithState("not_enough"),
+          weeklyEstimate: {
+            state: "not_enough",
+            projectedUtilization: 100,
+            exhaustedAtSecs: Math.floor(Date.now() / 1_000) - 60,
+            exhaustedBeforeResetSecs: 86_400,
+          },
+        }}
+        iconSrc="icon.png"
+      />,
+    );
+
+    expect(
+      screen.getByText("本周期用量已在重置前约 1 天达到上限。"),
+    ).toBeInTheDocument();
+  });
 });

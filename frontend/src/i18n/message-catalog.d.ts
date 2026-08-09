@@ -22,11 +22,14 @@ export type MessageCatalog = {
     "health_waiting": string;
     "kimi": string;
     "kimi_code": string;
+    "load_failed": string;
     "loading": string;
     "main_nav": string;
     "monitoring": string;
     "proxy_status": string;
     "refresh": string;
+    "refresh_failed": string;
+    "service_health_label": string;
     "settings": string;
   };
   "dashboard": {
@@ -47,13 +50,7 @@ export type MessageCatalog = {
     "hint_exhaust_in": string;
     "hint_tight": string;
     "hint_waiting": string;
-    "legend_observed": string;
-    "legend_projected": string;
     "login_expired": string;
-    "needs_login": string;
-    "no_5h_limit": string;
-    "now": string;
-    "projected_usage": string;
     "proxy_connected": string;
     "proxy_connected_url": string;
     "proxy_direct": string;
@@ -61,11 +58,7 @@ export type MessageCatalog = {
     "proxy_down": string;
     "proxy_down_detail": string;
     "quota_aria": string;
-    "reset_at": string;
-    "reset_date": string;
-    "reset_datetime": string;
     "reset_in": string;
-    "span_minutes": string;
     "state_enough": string;
     "state_not_enough": string;
     "state_tight": string;
@@ -74,8 +67,6 @@ export type MessageCatalog = {
     "tier_7d": string;
     "trend_accumulating": string;
     "trend_detail_exhausted": string;
-    "trend_detail_pace_flat": string;
-    "trend_detail_pace_up": string;
     "trend_hover_observed": string;
     "trend_hover_projected": string;
     "trend_pending_body": string;
@@ -84,16 +75,14 @@ export type MessageCatalog = {
     "trend_primary_at_reset_tight": string;
     "trend_primary_exhaust": string;
     "trend_primary_exhausted": string;
-    "trend_window_hours": string;
-    "trend_window_short": string;
     "unknown_time": string;
-    "updated_at": string;
     "usage_week_aria": string;
     "usage_week_caption": string;
     "usage_week_day_aria": string;
     "waiting_first_refresh": string;
   };
   "monitoring": {
+    "account_action_failed": string;
     "account_name": string;
     "account_name_placeholder_codex": string;
     "account_name_placeholder_kimi": string;
@@ -129,12 +118,11 @@ export type MessageCatalog = {
     "storage_backend": string;
   };
   "settings": {
-    "appearance": string;
     "appearance_mode": string;
     "apply_changes": string;
     "config_dir": string;
     "config_dir_hint": string;
-    "language": string;
+    "general": string;
     "language_mode": string;
     "locale_en": string;
     "locale_zh_cn": string;
@@ -144,8 +132,13 @@ export type MessageCatalog = {
     "network_proxy": string;
     "proxy_auto_hint": string;
     "proxy_mode": string;
+    "proxy_mode_label": string;
+    "proxy_save_failed": string;
+    "proxy_test_failed": string;
+    "proxy_test_result": string;
     "proxy_url": string;
     "proxy_url_for": string;
+    "proxy_url_placeholder": string;
     "reveal_in_finder": string;
     "save_proxy_settings": string;
     "test_connection": string;

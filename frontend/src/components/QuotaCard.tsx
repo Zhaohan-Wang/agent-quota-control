@@ -3,13 +3,11 @@ import {
   AlertTriangle,
   CheckCircle2,
   CircleDashed,
-  Network,
   XCircle,
   type LucideIcon,
 } from "lucide-react";
-import { useFormatter, useTranslations } from "../i18n";
+import { useTranslations } from "../i18n";
 import type { Translator } from "../i18n/translate";
-import { proxyDetailLabel } from "../proxyDisplay";
 import type {
   CardSnapshot,
   QuotaEstimate,
@@ -36,7 +34,6 @@ const STATUS_ICONS: Record<SufficiencyState, LucideIcon> = {
 
 export function QuotaCard({ card, iconSrc }: QuotaCardProps) {
   const t = useTranslations("dashboard");
-  const format = useFormatter();
   const estimateState = card.weeklyEstimate?.state ?? "unknown";
   const displayState = stateLabel(estimateState, t);
   const hasData = card.tiers.length > 0;
@@ -158,44 +155,12 @@ export function QuotaCard({ card, iconSrc }: QuotaCardProps) {
 
       {showEstimateBlock && card.weeklyEstimate && (
         <p className="estimate-note">
-          {card.weeklyEstimate.projectedUtilization == null
-            ? t("accumulating")
-            : card.weeklyEstimate.exhaustedBeforeResetSecs != null
-              ? t("exhausted_early", {
-                  duration: formatDuration(
-                    card.weeklyEstimate.exhaustedBeforeResetSecs,
-                    t,
-                  ),
-                })
-              : estimateHint(
-                  card.weeklyEstimate.state,
-                  t,
-                  card.weeklyEstimate.lastsForSecs,
-                )}
+          {estimateNote(card.weeklyEstimate, t)}
         </p>
       )}
       {hasData && card.weeklyEstimate && !needsLogin && (
         <UsageTrendChart estimate={card.weeklyEstimate} />
       )}
-
-      <div className="card-meta">
-        <div className="proxy-line card-meta-line">
-          <Network size={12} strokeWidth={1.75} aria-hidden />
-          <span>{proxyDetailLabel(card.proxy, t)}</span>
-          {card.queriedAt ? (
-            <>
-              <span className="meta-sep" aria-hidden>
-                ·
-              </span>
-              <span>
-                {t("updated_at", {
-                  time: format.dateTime(card.queriedAt, { timeStyle: "medium" }),
-                })}
-              </span>
-            </>
-          ) : null}
-        </div>
-      </div>
     </section>
   );
 }
@@ -302,6 +267,26 @@ function estimateHint(
   if (state === "tight") return t("hint_tight");
   if (state === "enough") return t("hint_enough");
   return t("hint_waiting");
+}
+
+function estimateNote(
+  estimate: QuotaEstimate,
+  t: Translator<"dashboard">,
+): string {
+  if (estimate.projectedUtilization == null) {
+    return t("accumulating");
+  }
+
+  const alreadyExhausted =
+    estimate.exhaustedAtSecs != null &&
+    estimate.exhaustedAtSecs <= Math.floor(Date.now() / 1_000);
+  if (alreadyExhausted && estimate.exhaustedBeforeResetSecs != null) {
+    return t("exhausted_early", {
+      duration: formatDuration(estimate.exhaustedBeforeResetSecs, t),
+    });
+  }
+
+  return estimateHint(estimate.state, t, estimate.lastsForSecs);
 }
 
 function formatDuration(seconds: number, t: Translator<"dashboard">): string {

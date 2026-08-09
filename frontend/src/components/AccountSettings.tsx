@@ -1,4 +1,4 @@
-import { Check, KeyRound, Pencil, Plus, Terminal, Trash2, X } from "lucide-react";
+import { Check, Pencil, Plus, Terminal, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { api } from "../api";
 import codexIcon from "../assets/codex.png";
@@ -55,8 +55,8 @@ export function AccountSettings({ state, onChange }: AccountSettingsProps) {
           : await api.importCodexAccount(name);
       onChange(next);
       cancelAdd();
-    } catch (err) {
-      setError(String(err));
+    } catch {
+      setError(t("account_action_failed"));
     } finally {
       setBusy(false);
     }
@@ -75,8 +75,8 @@ export function AccountSettings({ state, onChange }: AccountSettingsProps) {
     try {
       onChange(await api.renameAccount(accountId, editedName.trim()));
       setEditingId(null);
-    } catch (err) {
-      setError(String(err));
+    } catch {
+      setError(t("account_action_failed"));
     } finally {
       setBusy(false);
     }
@@ -88,29 +88,39 @@ export function AccountSettings({ state, onChange }: AccountSettingsProps) {
     setError(null);
     try {
       onChange(await api.removeAccount(account.id));
-    } catch (err) {
-      setError(String(err));
+    } catch {
+      setError(t("account_action_failed"));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <section className="panel wide account-settings">
-      <div className="account-settings-header">
-        <div>
-          <div className="panel-title">
-            <KeyRound size={15} strokeWidth={1.75} aria-hidden />
+    <section
+      className="settings-group wide account-settings"
+      aria-labelledby="accounts-title"
+    >
+      <div className="settings-group-heading">
+        <div className="settings-group-header">
+          <h3 className="settings-group-title" id="accounts-title">
             {t("accounts_title")}
-          </div>
-          <p className="muted">{t("accounts_hint")}</p>
+          </h3>
+          <p className="settings-group-caption">{t("accounts_hint")}</p>
         </div>
         <div className="button-row account-add-actions">
-          <button className="secondary compact" type="button" onClick={() => beginAdd("kimi")}>
+          <button
+            className="secondary compact"
+            type="button"
+            onClick={() => beginAdd("kimi")}
+          >
             <Plus size={14} strokeWidth={1.75} aria-hidden />
             {t("add_kimi")}
           </button>
-          <button className="secondary compact" type="button" onClick={() => beginAdd("codex")}>
+          <button
+            className="secondary compact"
+            type="button"
+            onClick={() => beginAdd("codex")}
+          >
             <Terminal size={14} strokeWidth={1.75} aria-hidden />
             {t("import_codex")}
           </button>
@@ -118,7 +128,10 @@ export function AccountSettings({ state, onChange }: AccountSettingsProps) {
       </div>
 
       {addMode && (
-        <div className="account-form" aria-label={addMode === "kimi" ? t("add_kimi") : t("import_codex")}>
+        <div
+          className="account-form"
+          aria-label={addMode === "kimi" ? t("add_kimi") : t("import_codex")}
+        >
           <label className="field">
             {t("account_name")}
             <input
@@ -148,7 +161,9 @@ export function AccountSettings({ state, onChange }: AccountSettingsProps) {
                 {t("storage_backend")}
                 <select
                   value={backend}
-                  onChange={(event) => setBackend(event.currentTarget.value as KimiCredentialBackend)}
+                  onChange={(event) =>
+                    setBackend(event.currentTarget.value as KimiCredentialBackend)
+                  }
                 >
                   <option value="keychain">{t("backend_keychain")}</option>
                   <option value="encrypted_vault">{t("backend_vault")}</option>
@@ -157,21 +172,28 @@ export function AccountSettings({ state, onChange }: AccountSettingsProps) {
             </>
           )}
           {addMode === "codex" && (
-            <p className="muted account-form-note">
-              {t("codex_import_note")}
-            </p>
+            <p className="muted account-form-note">{t("codex_import_note")}</p>
           )}
           <div className="button-row account-form-actions">
             <button
               className="primary compact"
               type="button"
-              disabled={busy || !displayName.trim() || (addMode === "kimi" && !apiKey.trim())}
+              disabled={
+                busy ||
+                !displayName.trim() ||
+                (addMode === "kimi" && !apiKey.trim())
+              }
               onClick={() => void saveNewAccount()}
             >
               <Check size={14} strokeWidth={1.75} aria-hidden />
               {addMode === "kimi" ? t("save_kimi") : t("import_codex_login")}
             </button>
-            <button className="secondary compact" type="button" disabled={busy} onClick={cancelAdd}>
+            <button
+              className="secondary compact"
+              type="button"
+              disabled={busy}
+              onClick={cancelAdd}
+            >
               {common("cancel")}
             </button>
           </div>
@@ -180,9 +202,10 @@ export function AccountSettings({ state, onChange }: AccountSettingsProps) {
 
       {error && <p className="error-copy account-error">{error}</p>}
 
-      <div className="account-list">
+      <div className="panel settings-group-panel">
         {state.config.accounts.map((account) => {
-          const serviceLabel = account.service === "kimi" ? common("kimi_code") : common("codex");
+          const serviceLabel =
+            account.service === "kimi" ? common("kimi_code") : common("codex");
           const nameMatchesService =
             account.displayName.trim() === serviceLabel;
           const subtitle = nameMatchesService
@@ -192,69 +215,105 @@ export function AccountSettings({ state, onChange }: AccountSettingsProps) {
                 .join(" · ");
 
           return (
-          <div className="account-row" key={account.id}>
-            <div className="account-identity">
-              <img
-                className="service-mark"
-                src={account.service === "kimi" ? kimiIcon : codexIcon}
-                alt=""
-                aria-hidden
-              />
-              <div
-                className={
-                  subtitle
-                    ? "account-name-stack"
-                    : "account-name-stack account-name-stack-single"
-                }
-              >
-                <div className="account-name-slot">
-                  {editingId === account.id ? (
-                    <input
-                      className="account-name-editor"
-                      aria-label={t("new_account_name")}
-                      autoFocus
-                      value={editedName}
-                      onFocus={(event) => event.currentTarget.select()}
-                      onChange={(event) => setEditedName(event.currentTarget.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" && editedName.trim()) {
-                          event.preventDefault();
-                          void saveRename(account.id);
-                        } else if (event.key === "Escape") {
-                          event.preventDefault();
-                          setEditingId(null);
+            <div className="account-row" key={account.id}>
+              <div className="account-identity">
+                <img
+                  className="service-mark"
+                  src={account.service === "kimi" ? kimiIcon : codexIcon}
+                  alt=""
+                  aria-hidden
+                />
+                <div
+                  className={
+                    subtitle
+                      ? "account-name-stack"
+                      : "account-name-stack account-name-stack-single"
+                  }
+                >
+                  <div className="account-name-slot">
+                    {editingId === account.id ? (
+                      <input
+                        className="account-name-editor"
+                        aria-label={t("new_account_name")}
+                        autoFocus
+                        value={editedName}
+                        onFocus={(event) => event.currentTarget.select()}
+                        onChange={(event) =>
+                          setEditedName(event.currentTarget.value)
                         }
-                      }}
-                    />
-                  ) : (
-                    <strong>{account.displayName}</strong>
-                  )}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" && editedName.trim()) {
+                            event.preventDefault();
+                            void saveRename(account.id);
+                          } else if (event.key === "Escape") {
+                            event.preventDefault();
+                            setEditingId(null);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <strong>{account.displayName}</strong>
+                    )}
+                  </div>
+                  {subtitle ? <small>{subtitle}</small> : null}
                 </div>
-                {subtitle ? <small>{subtitle}</small> : null}
+              </div>
+              <div className="account-row-actions">
+                {editingId === account.id ? (
+                  <>
+                    <button
+                      className="icon-button"
+                      type="button"
+                      title={t("save_name")}
+                      aria-label={t("save_name_for", {
+                        name: account.displayName,
+                      })}
+                      disabled={busy || !editedName.trim()}
+                      onClick={() => void saveRename(account.id)}
+                    >
+                      <Check size={14} strokeWidth={1.75} aria-hidden />
+                    </button>
+                    <button
+                      className="icon-button"
+                      type="button"
+                      title={t("cancel_rename")}
+                      aria-label={t("cancel_rename")}
+                      disabled={busy}
+                      onClick={() => setEditingId(null)}
+                    >
+                      <X size={14} strokeWidth={1.75} aria-hidden />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className="icon-button"
+                      type="button"
+                      title={t("rename")}
+                      aria-label={t("rename_account", {
+                        name: account.displayName,
+                      })}
+                      disabled={busy}
+                      onClick={() => beginRename(account)}
+                    >
+                      <Pencil size={14} strokeWidth={1.75} aria-hidden />
+                    </button>
+                    <button
+                      className="icon-button danger-button"
+                      type="button"
+                      title={t("delete_account")}
+                      aria-label={t("delete_account_for", {
+                        name: account.displayName,
+                      })}
+                      disabled={busy}
+                      onClick={() => void remove(account)}
+                    >
+                      <Trash2 size={14} strokeWidth={1.75} aria-hidden />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
-            <div className="account-row-actions">
-              {editingId === account.id ? (
-                <>
-                  <button className="icon-button" type="button" title={t("save_name")} aria-label={t("save_name_for", { name: account.displayName })} disabled={busy || !editedName.trim()} onClick={() => void saveRename(account.id)}>
-                    <Check size={14} strokeWidth={1.75} aria-hidden />
-                  </button>
-                  <button className="icon-button" type="button" title={t("cancel_rename")} aria-label={t("cancel_rename")} disabled={busy} onClick={() => setEditingId(null)}>
-                    <X size={14} strokeWidth={1.75} aria-hidden />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button className="icon-button" type="button" title={t("rename")} aria-label={t("rename_account", { name: account.displayName })} disabled={busy} onClick={() => beginRename(account)}>
-                    <Pencil size={14} strokeWidth={1.75} aria-hidden />
-                  </button>
-                  <button className="icon-button danger-button" type="button" title={t("delete_account")} aria-label={t("delete_account_for", { name: account.displayName })} disabled={busy} onClick={() => void remove(account)}>
-                    <Trash2 size={14} strokeWidth={1.75} aria-hidden />
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
           );
         })}
       </div>

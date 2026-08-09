@@ -2,17 +2,13 @@
 en = "{name} quota"
 zh-CN = "{name} 配额"
 
-[needs_login]
-en = "Sign-in required"
-zh-CN = "需要登录"
-
 [login_expired]
-en = "Sign-in expired. Sign in again, then tap Refresh above."
-zh-CN = "登录已失效。重新登录后点上方刷新。"
+en = "Your sign-in has expired. Sign in again, then click Refresh."
+zh-CN = "登录已过期。重新登录后，请点按“刷新”。"
 
 [waiting_first_refresh]
-en = "Fetching first usage sample…"
-zh-CN = "正在获取首次用量…"
+en = "Loading usage data…"
+zh-CN = "正在获取用量数据…"
 
 [tier_5h]
 en = "5 hours"
@@ -31,68 +27,52 @@ en = "Usage over the last 7 days"
 zh-CN = "近 7 日用量"
 
 [usage_week_day_aria]
-en = "{date}: about {burn}% used"
-zh-CN = "{date}：约增加 {burn}%"
-
-[no_5h_limit]
-en = "No 5-hour limit"
-zh-CN = "当前无 5 小时限制"
-
-[projected_usage]
-en = "Projected usage"
-zh-CN = "预计用量"
+en = "{date}: usage increased by about {burn}%"
+zh-CN = "{date}：用量增加约 {burn}%"
 
 [accumulating]
-en = "Collecting"
-zh-CN = "积累中"
+en = "Analyzing usage…"
+zh-CN = "正在分析用量…"
 
 [exhausted_early]
-en = "Exhausted {duration} early."
-zh-CN = "已提前 {duration} 耗尽。"
-
-[updated_at]
-en = "Updated {time}"
-zh-CN = "更新于 {time}"
+en = "Usage reached its limit about {duration} before this cycle reset."
+zh-CN = "本周期用量已在重置前约 {duration}达到上限。"
 
 [state_enough]
-en = "OK"
-zh-CN = "够用"
+en = "Plenty remaining"
+zh-CN = "余量充足"
 
 [state_tight]
-en = "Tight"
-zh-CN = "偏紧"
+en = "Low remaining"
+zh-CN = "余量较少"
 
 [state_not_enough]
-en = "Not enough"
-zh-CN = "不够"
+en = "May run out"
+zh-CN = "可能不足"
 
 [state_waiting]
-en = "Waiting for data"
-zh-CN = "等待数据"
+en = "Analyzing"
+zh-CN = "正在分析"
 
 [hint_exhaust_in]
-en = "Expected to run out in {duration}."
-zh-CN = "预计将在 {duration} 后耗尽。"
+en = "At the current rate, about {duration} of usage remains."
+zh-CN = "按照目前的用量，预计还可使用约 {duration}。"
 
 [hint_tight]
-en = "Likely won’t run out this week, but headroom is tight."
-zh-CN = "本周内预计不会耗尽，但余量偏紧。"
+en = "At the current rate, little may remain by the end of this cycle."
+zh-CN = "按照目前的用量，本周期结束时余量可能较少。"
 
 [hint_enough]
-en = "Expected to last through this week."
-zh-CN = "本周内预计够用。"
+en = "At the current rate, usage is expected to last through this cycle."
+zh-CN = "按照目前的用量，预计可使用至本周期结束。"
 
 [hint_waiting]
-en = "Waiting for more usage data to estimate."
-zh-CN = "等待更多用量数据后估算。"
+en = "A forecast will appear after more usage data is collected."
+zh-CN = "收集更多用量数据后，将显示预测。"
 
 [unknown_time]
 en = "Unknown time"
 zh-CN = "未知时间"
-
-[reset_at]
-en = "{time} reset"
-zh-CN = "{time} 重置"
 
 [reset_in]
 en = "resets in {duration}"
@@ -118,14 +98,6 @@ zh-CN = "{hours} 小时"
 en = "{minutes}m"
 zh-CN = "{minutes} 分钟"
 
-[reset_datetime]
-en = "{month}/{day} {hour}:{minute}"
-zh-CN = "{month}月{day}日 {hour}:{minute}"
-
-[reset_date]
-en = "{month}/{day}"
-zh-CN = "{month}月{day}日"
-
 [proxy_connected]
 en = "Proxy connected"
 zh-CN = "代理已连接"
@@ -139,109 +111,78 @@ en = "Proxy unavailable"
 zh-CN = "代理未连通"
 
 [proxy_connected_url]
-en = "Proxy connected: {url}"
-zh-CN = "代理已连接：{url}"
+en = "Connected through {url}."
+zh-CN = "已通过 {url} 连接。"
 
 [proxy_direct_detail]
-en = "No usable proxy found; using direct connection"
-zh-CN = "未检测到可用代理，当前走直连"
+en = "Using a direct connection."
+zh-CN = "当前使用直连。"
 
 [proxy_down_detail]
-en = "Proxy unavailable; check the URL and local ports"
-zh-CN = "代理未连通，请检查地址和本地端口"
+en = "Couldn’t connect to the proxy. Check the address and try again."
+zh-CN = "无法连接到代理。请检查地址后再试。"
 
 [trend_pending_title]
-en = "Building trend chart"
-zh-CN = "趋势图正在建立"
+en = "Analyzing usage"
+zh-CN = "正在分析用量"
 
 [trend_pending_body]
-en = "Short-term forecasts need at least 5 samples spanning 20 stable minutes; keep collecting otherwise."
-zh-CN = "短期预测至少需要 5 个样本并稳定覆盖 20 分钟；否则继续积累数据。"
-
-[legend_observed]
-en = "Actual usage"
-zh-CN = "实际用量"
-
-[legend_projected]
-en = "Near-term forecast"
-zh-CN = "近期趋势预测"
-
-[now]
-en = "Now"
-zh-CN = "现在"
+en = "A trend forecast will appear after more usage data is collected."
+zh-CN = "收集更多用量数据后，将显示趋势预测。"
 
 [axis_reset]
 en = "{date} reset"
 zh-CN = "{date} 重置"
 
 [trend_accumulating]
-en = "Collecting trend data"
-zh-CN = "正在积累趋势数据"
+en = "Analyzing usage…"
+zh-CN = "正在分析用量…"
 
 [trend_primary_at_reset]
-en = "Projected ~{percent}% at reset"
-zh-CN = "预计重置时约 {percent}%"
+en = "At the current rate, usage is expected to be about {percent}% at reset."
+zh-CN = "按照目前的用量，重置时预计约为 {percent}%。"
 
 [trend_primary_at_reset_tight]
-en = "Projected ~{percent}% at reset — tight"
-zh-CN = "预计重置时约 {percent}%，余量偏紧"
+en = "At the current rate, usage is expected to be about {percent}% at reset, with little remaining."
+zh-CN = "按照目前的用量，重置时预计约为 {percent}%，余量可能较少。"
 
 [trend_primary_exhaust]
-en = "Projected to run out in {duration}"
-zh-CN = "预计 {duration}后用完"
+en = "At the current rate, about {duration} of usage remains."
+zh-CN = "按照目前的用量，预计还可使用约 {duration}。"
 
 [trend_primary_exhausted]
 en = "Ran out before reset this cycle"
 zh-CN = "本周期已在重置前用完"
 
-[trend_detail_pace_up]
-en = "Based on the {window}, usage is rising by about {rate}% each hour."
-zh-CN = "根据{window}的变化，用量大约每小时增加 {rate}%。"
-
-[trend_detail_pace_flat]
-en = "Based on the {window}, usage has stayed about the same."
-zh-CN = "根据{window}的变化，用量基本保持平稳。"
-
 [trend_detail_exhausted]
-en = "That was about {early} before this cycle resets."
-zh-CN = "比本次重置大约提前了 {early}。"
-
-[trend_window_short]
-en = "last {span}"
-zh-CN = "最近 {span}"
-
-[trend_window_hours]
-en = "last {hours} hours"
-zh-CN = "最近 {hours} 小时"
+en = "About {early} before this cycle’s reset"
+zh-CN = "比本周期重置时间早约 {early}"
 
 [chart_actual]
-en = "Actual usage is currently {percent}%"
-zh-CN = "实际用量当前为 {percent}%"
+en = "Currently {percent}% used"
+zh-CN = "当前已用 {percent}%"
 
 [chart_actual_empty]
-en = "No actual usage data yet"
-zh-CN = "实际用量暂无数据"
+en = "Usage data is not yet available"
+zh-CN = "尚无用量数据"
 
 [chart_projected]
-en = "Near-term forecast reaches {percent}%"
-zh-CN = "近期趋势预测到 {percent}%"
+en = "Forecast to reach {percent}%"
+zh-CN = "预计将达到 {percent}%"
 
 [chart_projected_empty]
-en = "Near-term forecast still collecting"
-zh-CN = "近期趋势预测正在积累数据"
+en = "Forecast data is still being collected"
+zh-CN = "正在收集预测数据"
 
 [chart_aria]
-en = "7-day usage chart: {actual}; {projected}."
-zh-CN = "7 天用量趋势图：{actual}；{projected}。"
+en = "7-day usage trend. {actual}; {projected}."
+zh-CN = "7 天用量趋势。{actual}；{projected}。"
 
 [trend_hover_observed]
 en = "{date}: {percent}% used"
-zh-CN = "{date}：已用 {percent}%"
+zh-CN = "{date}：用量为 {percent}%"
 
 [trend_hover_projected]
-en = "{date}: projected {percent}%"
-zh-CN = "{date}：预计 {percent}%"
+en = "{date}: projected usage {percent}%"
+zh-CN = "{date}：预计用量为 {percent}%"
 
-[span_minutes]
-en = "{minutes} minutes"
-zh-CN = "{minutes} 分钟"

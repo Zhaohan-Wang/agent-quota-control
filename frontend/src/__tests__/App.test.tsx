@@ -264,8 +264,8 @@ describe("App", () => {
     const kimiCard = await screen.findByRole("region", { name: "Kimi 工作账号 配额" });
     const codexCard = screen.getByRole("region", { name: "Codex 个人账号 配额" });
 
-    expect(within(kimiCard).getByText("够用")).toBeInTheDocument();
-    expect(within(codexCard).getByText("不够")).toBeInTheDocument();
+    expect(within(kimiCard).getByText("余量充足")).toBeInTheDocument();
+    expect(within(codexCard).getByText("可能不足")).toBeInTheDocument();
     expect(
       kimiCard.querySelector(".status-badge.enough .lucide-circle-check"),
     ).not.toBeNull();
@@ -311,24 +311,32 @@ describe("App", () => {
     expect(within(kimiCard).getByText("2 小时 15 分钟后重置")).toBeInTheDocument();
     expect(within(kimiCard).getByText("3 天 10 小时后重置")).toBeInTheDocument();
     expect(within(kimiCard).queryByText(/06月07日/)).not.toBeInTheDocument();
-    const proxyStatus = screen.getByLabelText("代理状态");
+    const proxyStatus = screen.getByLabelText("服务状态");
     expect(within(proxyStatus).getByText("Kimi")).toBeInTheDocument();
     expect(within(proxyStatus).getByText("Codex")).toBeInTheDocument();
-    expect(within(proxyStatus).getByLabelText("Kimi：登录正常")).toBeInTheDocument();
-    expect(within(proxyStatus).getByLabelText("Codex：登录正常")).toBeInTheDocument();
-    expect(within(kimiCard).queryByText("本周内预计够用。")).not.toBeInTheDocument();
-    expect(within(codexCard).getByText("预计将在 1 天 2 小时 后耗尽。")).toBeInTheDocument();
+    expect(within(proxyStatus).getByLabelText("Kimi：可用")).toBeInTheDocument();
+    expect(within(proxyStatus).getByLabelText("Codex：可用")).toBeInTheDocument();
     expect(
-      screen.getByRole("img", { name: /实际用量.*近期趋势预测/ }),
-    ).toBeInTheDocument();
-    expect(within(kimiCard).getByText("预计重置时约 72%")).toBeInTheDocument();
+      within(kimiCard).queryByText(
+        "按照目前的用量，预计可使用至本周期结束。",
+      ),
+    ).not.toBeInTheDocument();
     expect(
-      within(kimiCard).getByText(
-        "根据最近 24 小时的变化，用量大约每小时增加 0.4%。",
+      within(codexCard).getByText(
+        "按照目前的用量，预计还可使用约 1 天 2 小时。",
       ),
     ).toBeInTheDocument();
-    expect(within(kimiCard).getByText(/更新于/)).toBeInTheDocument();
-    expect(kimiCard.querySelectorAll(".proxy-line")).toHaveLength(1);
+    expect(
+      screen.getByRole("img", { name: /7 天用量趋势.*当前已用.*预计将达到/ }),
+    ).toBeInTheDocument();
+    expect(
+      within(kimiCard).getByText(
+        "按照目前的用量，重置时预计约为 72%。",
+      ),
+    ).toBeInTheDocument();
+    expect(within(kimiCard).queryByText(/根据最近/)).not.toBeInTheDocument();
+    expect(within(kimiCard).queryByText(/更新于/)).not.toBeInTheDocument();
+    expect(kimiCard.querySelectorAll(".proxy-line")).toHaveLength(0);
     expect(screen.queryByText("direct")).not.toBeInTheDocument();
     expect(screen.queryByText("unavailable")).not.toBeInTheDocument();
   });
@@ -349,14 +357,18 @@ describe("App", () => {
 
     render(<App />);
 
-    expect(await screen.findByLabelText("Kimi：需要登录")).toBeInTheDocument();
-    expect(screen.getByLabelText("Codex：需要登录")).toBeInTheDocument();
+    expect(
+      await screen.findByLabelText("Kimi：需要重新登录"),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Codex：需要重新登录")).toBeInTheDocument();
     const kimiCard = screen.getByRole("region", { name: "Kimi 工作账号 配额" });
     expect(within(kimiCard).queryByText("需要登录")).not.toBeInTheDocument();
     expect(kimiCard.querySelectorAll(".status-badge")).toHaveLength(0);
     expect(kimiCard.querySelectorAll(".lucide-triangle-alert")).toHaveLength(1);
     expect(
-      within(kimiCard).getByText("登录已失效。重新登录后点上方刷新。"),
+      within(kimiCard).getByText(
+        "登录已过期。重新登录后，请点按“刷新”。",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -381,7 +393,10 @@ describe("App", () => {
 
     fireEvent.click(settings);
     expect(settings).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("button", { name: "保存代理设置" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "网络代理" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "应用代理设置" }),
+    ).not.toBeInTheDocument();
   });
 
   it("activates the safe-area blur after content scrolls", async () => {
@@ -444,36 +459,41 @@ describe("App", () => {
     render(<App />);
 
     await user.click(await screen.findByRole("button", { name: "设置" }));
-    await user.click(screen.getByRole("button", { name: "保存代理设置" }));
+    expect(
+      screen.queryByRole("button", { name: "应用代理设置" }),
+    ).not.toBeInTheDocument();
+
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Kimi Code 代理模式" }),
+      "off",
+    );
+    const apply = await screen.findByRole("button", { name: "应用代理设置" });
+    expect(apply).toHaveClass("primary");
+    await user.click(apply);
 
     await waitFor(() =>
       expect(invokeMock).toHaveBeenCalledWith(
         "save_proxy_settings",
-        expect.objectContaining({ settings: dashboardState.config.proxy }),
+        expect.objectContaining({
+          settings: {
+            ...dashboardState.config.proxy,
+            kimi: { ...dashboardState.config.proxy.kimi, mode: "off" },
+          },
+        }),
       ),
     );
   });
 
-  it("previews proxy mode on press and commits on release", async () => {
+  it("changes proxy mode from the popup select", async () => {
     const user = userEvent.setup();
     render(<App />);
 
     await user.click(await screen.findByRole("button", { name: "设置" }));
-    const kimiModes = screen.getByRole("group", { name: "Kimi Code 代理模式" });
-    const off = within(kimiModes).getByRole("button", { name: "关闭" });
-    const auto = within(kimiModes).getByRole("button", { name: "自动" });
+    const kimiMode = screen.getByRole("combobox", { name: "Kimi Code 代理模式" });
+    expect(kimiMode).toHaveValue("auto");
 
-    expect(auto).toHaveAttribute("aria-pressed", "true");
-    expect(off).toHaveAttribute("aria-pressed", "false");
-
-    fireEvent.pointerDown(off);
-    expect(off).toHaveClass("active");
-    expect(auto).not.toHaveClass("active");
-    expect(off).toHaveAttribute("aria-pressed", "false");
-
-    fireEvent.click(off);
-    expect(off).toHaveAttribute("aria-pressed", "true");
-    expect(auto).toHaveAttribute("aria-pressed", "false");
+    await user.selectOptions(kimiMode, "off");
+    expect(kimiMode).toHaveValue("off");
   });
 
   it("lets appearance switch between light, dark, and system", async () => {
@@ -483,23 +503,16 @@ describe("App", () => {
     render(<App />);
 
     await user.click(await screen.findByRole("button", { name: "设置" }));
-    const appearance = screen.getByRole("group", { name: "外观模式" });
-    const light = within(appearance).getByRole("button", { name: "浅色" });
-    const dark = within(appearance).getByRole("button", { name: "深色" });
-    const system = within(appearance).getByRole("button", { name: "跟随系统" });
+    const appearance = screen.getByRole("combobox", { name: "外观" });
+    expect(appearance).toHaveValue("system");
 
-    expect(system).toHaveAttribute("aria-pressed", "true");
-
-    fireEvent.pointerDown(light);
-    expect(light).toHaveClass("active");
-    expect(system).not.toHaveClass("active");
-    fireEvent.click(light);
+    await user.selectOptions(appearance, "light");
     expect(document.documentElement.dataset.theme).toBe("light");
-    expect(light).toHaveAttribute("aria-pressed", "true");
+    expect(appearance).toHaveValue("light");
 
-    fireEvent.click(dark);
+    await user.selectOptions(appearance, "dark");
     expect(document.documentElement.dataset.theme).toBe("dark");
-    expect(dark).toHaveAttribute("aria-pressed", "true");
+    expect(appearance).toHaveValue("dark");
   });
 
   it("switches interface language from settings", async () => {
@@ -507,12 +520,12 @@ describe("App", () => {
     render(<App />);
 
     await user.click(await screen.findByRole("button", { name: "设置" }));
-    const language = screen.getByLabelText("语言");
+    const language = screen.getByRole("combobox", { name: "语言" });
     await user.selectOptions(language, "en");
 
     expect(await screen.findByRole("button", { name: "Settings" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Agent Quota Control" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Language")).toHaveValue("en");
+    expect(screen.getByRole("combobox", { name: "Language" })).toHaveValue("en");
   });
 
   it("lets a monitored service be hidden from the menu bar independently", async () => {
@@ -520,7 +533,7 @@ describe("App", () => {
     render(<App />);
 
     await user.click(await screen.findByRole("button", { name: "监控" }));
-    await user.click(screen.getByRole("switch", { name: "在状态栏显示 Codex" }));
+    await user.click(screen.getByRole("switch", { name: "在菜单栏中显示 Codex" }));
 
     await waitFor(() =>
       expect(invokeMock).toHaveBeenCalledWith("set_status_bar_services", {
@@ -535,7 +548,7 @@ describe("App", () => {
 
     await user.click(await screen.findByRole("button", { name: "监控" }));
 
-    await user.click(screen.getByRole("switch", { name: "状态栏显示服务图标" }));
+    await user.click(screen.getByRole("switch", { name: "在菜单栏中显示服务图标" }));
     await waitFor(() =>
       expect(invokeMock).toHaveBeenCalledWith("set_status_bar_display", {
         display: {
@@ -546,7 +559,7 @@ describe("App", () => {
       }),
     );
 
-    await user.click(screen.getByRole("switch", { name: "状态栏显示百分比" }));
+    await user.click(screen.getByRole("switch", { name: "在菜单栏中显示用量百分比" }));
     await waitFor(() =>
       expect(invokeMock).toHaveBeenCalledWith("set_status_bar_display", {
         display: {
@@ -557,7 +570,7 @@ describe("App", () => {
       }),
     );
 
-    await user.click(screen.getByRole("switch", { name: "状态栏显示状态文字" }));
+    await user.click(screen.getByRole("switch", { name: "在菜单栏中显示用量状态" }));
     await waitFor(() =>
       expect(invokeMock).toHaveBeenCalledWith("set_status_bar_display", {
         display: {
@@ -574,10 +587,10 @@ describe("App", () => {
     render(<App />);
 
     await user.click(await screen.findByRole("button", { name: "监控" }));
-    await user.click(screen.getByRole("button", { name: "添加 Kimi 账号" }));
+    await user.click(screen.getByRole("button", { name: "添加 Kimi Code 账号" }));
     await user.type(screen.getByRole("textbox", { name: "账号名称" }), "团队账号");
-    await user.type(screen.getByLabelText("Kimi API Key"), "sk-team-secret");
-    await user.click(screen.getByRole("button", { name: "保存 Kimi 账号" }));
+    await user.type(screen.getByLabelText("Kimi API 密钥"), "sk-team-secret");
+    await user.click(screen.getByRole("button", { name: "添加账号" }));
 
     await waitFor(() =>
       expect(invokeMock).toHaveBeenCalledWith("add_kimi_account", {
@@ -594,18 +607,18 @@ describe("App", () => {
 
     await user.click(await screen.findByRole("button", { name: "监控" }));
     const rename = screen.getByRole("button", {
-      name: "重命名 Kimi 工作账号",
+      name: "重命名“Kimi 工作账号”",
     });
 
     fireEvent.pointerDown(rename);
-    expect(screen.queryByRole("textbox", { name: "新账号名称" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "账号名称" })).not.toBeInTheDocument();
 
     fireEvent.click(rename);
-    const editor = screen.getByRole("textbox", { name: "新账号名称" });
+    const editor = screen.getByRole("textbox", { name: "账号名称" });
     expect(editor).toBeInTheDocument();
     expect(within(rename.closest(".account-row") as HTMLElement).getByText("Kimi Code")).toBeInTheDocument();
 
     await user.keyboard("{Escape}");
-    expect(screen.queryByRole("textbox", { name: "新账号名称" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "账号名称" })).not.toBeInTheDocument();
   });
 });

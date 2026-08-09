@@ -28,5 +28,5 @@ export function proxyDetailLabel(proxy: ProxyTestResult, t: DashboardT): string 
   if (proxy.status === "direct") {
     return t("proxy_direct_detail");
   }
-  return proxy.message || t("proxy_down_detail");
+  return t("proxy_down_detail");
 }

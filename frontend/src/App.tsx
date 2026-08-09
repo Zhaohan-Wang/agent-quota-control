@@ -5,15 +5,13 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   Activity,
   BarChart3,
-  Folder,
   Loader2,
   RefreshCw,
   Settings,
 } from "lucide-react";
 import { api } from "./api";
 import { AccountSettings } from "./components/AccountSettings";
-import { AppearanceSettings } from "./components/AppearanceSettings";
-import { LanguageSettings } from "./components/LanguageSettings";
+import { GeneralSettings } from "./components/GeneralSettings";
 import { MonitoringSettings } from "./components/MonitoringSettings";
 import { ProxySettings } from "./components/ProxySettings";
 import { QuotaCard } from "./components/QuotaCard";
@@ -24,13 +22,13 @@ import kimiIcon from "./assets/kimi.png";
 import { isFakeDashboardEnabled } from "./debug/fakeDashboard";
 import { useTranslations } from "./i18n";
 import type { Translator } from "./i18n/translate";
+import { installPressFeedback } from "./pressFeedback";
 import type { DashboardState } from "./types";
 
 type View = "dashboard" | "monitoring" | "settings";
 
 export function App() {
   const t = useTranslations("common");
-  const settingsT = useTranslations("settings");
   const [view, setView] = useState<View>("dashboard");
   const [pressedView, setPressedView] = useState<View | null>(null);
   const [state, setState] = useState<DashboardState | null>(null);
@@ -46,6 +44,8 @@ export function App() {
     { id: "monitoring", label: t("monitoring"), icon: Activity },
     { id: "settings", label: t("settings"), icon: Settings },
   ];
+
+  useEffect(() => installPressFeedback(document), []);
 
   useEffect(() => {
     void loadState();
@@ -119,8 +119,8 @@ export function App() {
     setError(null);
     try {
       setState(await api.getDashboardState());
-    } catch (err) {
-      setError(String(err));
+    } catch {
+      setError(t("load_failed"));
     } finally {
       setLoading(false);
     }
@@ -130,8 +130,8 @@ export function App() {
     setError(null);
     try {
       setState(await api.refreshUsage());
-    } catch (err) {
-      setError(String(err));
+    } catch {
+      setError(t("refresh_failed"));
     }
   }
 
@@ -223,7 +223,10 @@ export function App() {
               <div className="proxy-pills" aria-label={t("proxy_status")}>
                 <span
                   className="topbar-status"
-                  aria-label={`${t("kimi")}：${serviceHealth(state.cards, "kimi", t).label}`}
+                  aria-label={t("service_health_label", {
+                    service: t("kimi"),
+                    status: serviceHealth(state.cards, "kimi", t).label,
+                  })}
                 >
                   <span
                     className={`status-dot ${serviceHealth(state.cards, "kimi", t).tone}`}
@@ -233,7 +236,10 @@ export function App() {
                 </span>
                 <span
                   className="topbar-status"
-                  aria-label={`${t("codex")}：${serviceHealth(state.cards, "codex", t).label}`}
+                  aria-label={t("service_health_label", {
+                    service: t("codex"),
+                    status: serviceHealth(state.cards, "codex", t).label,
+                  })}
                 >
                   <span
                     className={`status-dot ${serviceHealth(state.cards, "codex", t).tone}`}
@@ -310,20 +316,7 @@ export function App() {
             {state && view === "settings" && (
               <div className="settings-grid">
                 <ProxySettings state={state} onChange={setState} />
-                <AppearanceSettings />
-                <LanguageSettings />
-                <section className="panel">
-                  <div className="panel-title">
-                    <Folder size={15} strokeWidth={1.75} aria-hidden />
-                    {settingsT("config_dir")}
-                  </div>
-                  <p className="muted panel-description">
-                    {settingsT("config_dir_hint")}
-                  </p>
-                  <button className="secondary" type="button" onClick={api.revealConfigDir}>
-                    {settingsT("reveal_in_finder")}
-                  </button>
-                </section>
+                <GeneralSettings />
               </div>
             )}
           </div>

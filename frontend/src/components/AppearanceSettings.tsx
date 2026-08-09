@@ -1,4 +1,3 @@
-import { SunMoon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useTranslations } from "../i18n";
@@ -9,6 +8,7 @@ import {
   subscribeSystemTheme,
   type ThemePreference,
 } from "../theme";
+import { MacosPopupSelect } from "./MacosPopupSelect";
 
 const themeOptions: Array<{
   id: ThemePreference;
@@ -24,7 +24,6 @@ export function AppearanceSettings() {
   const [preference, setPreference] = useState<ThemePreference>(() =>
     readThemePreference(),
   );
-  const [pressedTheme, setPressedTheme] = useState<ThemePreference | null>(null);
 
   useEffect(() => {
     applyThemePreference(preference);
@@ -42,39 +41,24 @@ export function AppearanceSettings() {
   }
 
   return (
-    <section className="panel">
-      <div className="panel-title">
-        <SunMoon size={15} strokeWidth={1.75} aria-hidden />
-        {t("appearance")}
-      </div>
-      <div className="segmented" role="group" aria-label={t("appearance_mode")}>
+    <div className="switch-row">
+      <span id="appearance-row-label">
+        <strong>{t("appearance_mode")}</strong>
+      </span>
+      <MacosPopupSelect
+        value={preference}
+        aria-labelledby="appearance-row-label"
+        onChange={(event) =>
+          selectTheme(event.currentTarget.value as ThemePreference)
+        }
+      >
         {themeOptions.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            className={
-              pressedTheme === option.id ||
-              (pressedTheme === null && preference === option.id)
-                ? "active"
-                : ""
-            }
-            aria-pressed={preference === option.id}
-            onPointerDown={() => setPressedTheme(option.id)}
-            onPointerLeave={() => {
-              if (pressedTheme === option.id) setPressedTheme(null);
-            }}
-            onPointerCancel={() => setPressedTheme(null)}
-            onContextMenu={() => setPressedTheme(null)}
-            onClick={() => {
-              selectTheme(option.id);
-              setPressedTheme(null);
-            }}
-          >
+          <option key={option.id} value={option.id}>
             {t(option.labelKey)}
-          </button>
+          </option>
         ))}
-      </div>
-    </section>
+      </MacosPopupSelect>
+    </div>
   );
 }
 

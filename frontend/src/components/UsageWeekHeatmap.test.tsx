@@ -40,9 +40,9 @@ describe("UsageWeekHeatmap", () => {
 
     render(<UsageWeekHeatmap days={days} />);
 
-    const hotCell = screen.getByLabelText(/约增加 8%/);
+    const hotCell = screen.getByLabelText(/用量增加约 8%/);
     fireEvent.mouseEnter(hotCell);
-    expect(screen.getByRole("tooltip")).toHaveTextContent(/约增加 8%/);
+    expect(screen.getByRole("tooltip")).toHaveTextContent(/用量增加约 8%/);
     fireEvent.mouseLeave(hotCell);
     expect(screen.queryByRole("tooltip")).toBeNull();
   });

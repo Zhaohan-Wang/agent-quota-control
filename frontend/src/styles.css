@@ -256,6 +256,13 @@ select {
   color: var(--muted);
 }
 
+/* Fade sidebar directory copy + icons with the brand mark when inactive. */
+.window-inactive .brand-copy,
+.window-inactive .sidebar nav .nav-item {
+  opacity: 0.48;
+  transition: opacity 160ms ease;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -273,6 +280,11 @@ select {
   border-radius: 50%;
   object-fit: contain;
   pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.window-inactive .brand-mark {
+  opacity: 0.45;
 }
 
 .brand-mark-dark {
@@ -561,11 +573,13 @@ select {
   color: var(--text);
 }
 
-.topbar-control:hover {
+/* Topbar refresh keeps real mouse hover; press still uses data-press. */
+.topbar-control:hover,
+.topbar-control[data-press="hover"] {
   background: var(--glass-control-hover);
 }
 
-.topbar-control:active {
+.topbar-control[data-press="click"] {
   background: var(--glass-control-active);
 }
 
@@ -738,6 +752,128 @@ select {
   max-width: none;
 }
 
+/* Apple Settings groups: title outside (same size as row text), list inside. */
+.settings-group {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.settings-group.wide {
+  grid-column: 1 / -1;
+}
+
+.settings-group-header {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.settings-group-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.settings-group-title {
+  margin: 0;
+  /* Match panel content inset so title lines up with row labels. */
+  padding: 0 var(--card-pad);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.settings-group-caption {
+  margin: 0;
+  padding: 0 var(--card-pad);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.settings-group-panel.panel {
+  display: grid;
+  gap: 0;
+  /* No vertical chrome — rows own the padding (avoids empty bands). */
+  padding: 0;
+  overflow: hidden;
+}
+
+.settings-group-panel > .switch-row,
+.settings-group-panel > .settings-group-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 11px var(--card-pad);
+  border-top: 0;
+}
+
+.settings-group-panel > .switch-row + .switch-row::before,
+.settings-group-panel > .settings-group-row + .settings-group-row::before,
+.settings-group-panel > .switch-row + .settings-group-row::before,
+.settings-group-panel > .settings-group-row + .switch-row::before,
+.settings-group-panel > .account-row + .account-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--card-pad);
+  right: var(--card-pad);
+  height: 1px;
+  background: var(--separator);
+}
+
+/* In-card section labels (Apple “显示通知:” style) — same row rhythm as peers. */
+.settings-subtitle-label,
+.settings-row-label {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+/* Nested under a service subtitle — deep inset like Apple “显示通知” children.
+   Hairline separators stay at --card-pad (full row width). */
+.settings-group-panel > .settings-nested-row {
+  padding-left: calc(var(--card-pad) + 40px);
+}
+
+.settings-group-footer-note {
+  margin: 0;
+  padding: 0 var(--card-pad);
+}
+
+.proxy-apply-actions {
+  flex-shrink: 0;
+  margin-top: 0;
+  padding-right: var(--card-pad);
+}
+
+.settings-group-panel > .account-row {
+  position: relative;
+  min-height: 44px;
+  padding: 10px var(--card-pad);
+  border-bottom: 0;
+}
+
+.settings-group-panel > .settings-group-body {
+  padding: var(--card-pad);
+}
+
+.window-inactive .settings-group-title,
+.window-inactive .settings-group-caption,
+.window-inactive .settings-group-heading .button-row {
+  opacity: 0.48;
+  transition: opacity 160ms ease;
+}
+
 .quota-card,
 .panel {
   border: 0;
@@ -761,6 +897,17 @@ select {
   overflow: visible;
 }
 
+/*
+ * Inactive: keep card chrome/background solid; fade only the content so the
+ * surface still reads as a grouped plate (Apple Settings–like calm).
+ */
+.window-inactive .quota-card > *,
+.window-inactive .panel > *,
+.window-inactive .dashboard-empty > * {
+  opacity: 0.48;
+  transition: opacity 160ms ease;
+}
+
 .panel.wide {
   grid-column: 1 / -1;
 }
@@ -769,7 +916,6 @@ select {
 .panel-title,
 .tier-meta,
 .switch-row,
-.proxy-line,
 .service-heading,
 .account-settings-header,
 .account-row,
@@ -919,9 +1065,6 @@ select {
   font-weight: 600;
 }
 
-.proxy-editor .subhead {
-  margin-bottom: 0;
-}
 
 .tier-stack,
 .row-list {
@@ -1191,9 +1334,11 @@ select {
 
 .usage-trend {
   display: grid;
-  gap: 6px;
+  gap: 10px;
   min-width: 0;
-  padding-top: 4px;
+  margin-top: 2px;
+  padding-top: 12px;
+  border-top: 1px solid var(--separator);
 }
 
 .trend-pending {
@@ -1395,15 +1540,14 @@ select {
   display: grid;
   gap: 2px;
   min-width: 0;
-  min-height: 2.75em;
-  padding-top: 2px;
+  padding: 0;
 }
 
 .trend-report-primary {
   margin: 0;
   color: var(--text);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 550;
   letter-spacing: -0.015em;
   line-height: 1.35;
   font-variant-numeric: tabular-nums;
@@ -1416,35 +1560,6 @@ select {
   font-size: 11px;
   line-height: 1.4;
   overflow-wrap: anywhere;
-}
-
-.trend-report-detail-spacer {
-  visibility: hidden;
-}
-
-.card-meta {
-  margin-top: auto;
-  min-width: 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--separator);
-}
-
-.proxy-line {
-  gap: 6px;
-  margin-top: 0;
-  color: var(--muted);
-  font-size: 11px;
-  min-width: 0;
-}
-
-.card-meta-line {
-  flex-wrap: wrap;
-  row-gap: 2px;
-  min-width: 0;
-}
-
-.meta-sep {
-  opacity: 0.55;
 }
 
 .quota-empty {
@@ -1464,6 +1579,9 @@ select {
   padding: 0 14px;
   font-size: 13px;
   font-weight: 550;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
 }
 
 .primary {
@@ -1471,8 +1589,13 @@ select {
   color: var(--primary-button-text);
 }
 
-.primary:active:not(:disabled) {
-  background: color-mix(in srgb, var(--primary-button) 82%, black);
+/* No idle :hover — press sets data-press=hover; release flashes click. */
+.primary[data-press="hover"]:not(:disabled) {
+  background: color-mix(in srgb, var(--primary-button) 90%, black);
+}
+
+.primary[data-press="click"]:not(:disabled) {
+  background: color-mix(in srgb, var(--primary-button) 78%, black);
 }
 
 .secondary {
@@ -1480,7 +1603,11 @@ select {
   color: var(--text);
 }
 
-.secondary:active:not(:disabled) {
+.secondary[data-press="hover"]:not(:disabled) {
+  background: color-mix(in srgb, var(--control-solid) 72%, var(--control-active));
+}
+
+.secondary[data-press="click"]:not(:disabled) {
   background: var(--control-active);
 }
 
@@ -1489,7 +1616,11 @@ select {
   color: var(--text);
 }
 
-.window-inactive .primary:active:not(:disabled) {
+.window-inactive .primary[data-press="hover"]:not(:disabled) {
+  background: color-mix(in srgb, var(--control-solid) 72%, var(--control-active));
+}
+
+.window-inactive .primary[data-press="click"]:not(:disabled) {
   background: var(--control-active);
 }
 
@@ -1506,12 +1637,24 @@ select {
   color: var(--muted);
 }
 
-.icon-button:active:not(:disabled) {
+.icon-button[data-press="hover"]:not(:disabled) {
+  background: var(--control);
   color: var(--text);
 }
 
-.icon-button.danger-button:active:not(:disabled) {
-  color: color-mix(in srgb, var(--danger) 72%, white);
+.icon-button[data-press="click"]:not(:disabled) {
+  background: var(--control-active);
+  color: var(--text);
+}
+
+.icon-button.danger-button[data-press="hover"]:not(:disabled) {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.icon-button.danger-button[data-press="click"]:not(:disabled) {
+  background: color-mix(in srgb, var(--danger-soft) 70%, var(--danger));
+  color: var(--danger);
 }
 
 .field {
@@ -1564,8 +1707,12 @@ select {
 
 .switch-row strong {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.25;
+}
+
+.settings-group-title + .settings-group-caption {
+  margin-top: 0;
 }
 
 .switch-row:first-of-type {
@@ -1576,7 +1723,7 @@ select {
   gap: 14px;
 }
 
-.service-switches label {
+.service-switch {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1594,13 +1741,21 @@ select {
   border-radius: 8px;
   background: var(--control-active);
   padding: 0;
-  transition:
-    background 160ms ease,
-    opacity 160ms ease;
+  /* Track color snaps — only the knob slides, so state changes stay crisp. */
+  transition: opacity 160ms ease;
 }
 
 .toggle-switch.on {
   background: var(--accent);
+}
+
+/* Press preview only; cleared on release before the new state paints. */
+.toggle-switch[data-press="hover"]:not(:disabled) {
+  background: color-mix(in srgb, var(--control-active) 62%, #ffffff);
+}
+
+.toggle-switch.on[data-press="hover"]:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 82%, #ffffff);
 }
 
 .toggle-knob {
@@ -1612,10 +1767,7 @@ select {
   border-radius: 7px;
   background: #ffffff;
   box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.18);
-  transition:
-    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    background 160ms ease,
-    box-shadow 160ms ease;
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .toggle-switch.on .toggle-knob {
@@ -1701,127 +1853,145 @@ select {
   margin-top: 8px;
 }
 
+/* Apple System Settings pop-up: idle circle indicator → hover rounded rect fill.
+   Lit state is hover/active only — not :focus-within — so dismissing the native
+   menu by clicking elsewhere does not leave a stuck highlight. */
 .macos-popup {
   position: relative;
-  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  max-width: min(100%, 240px);
+  margin: 0;
+  border-radius: 6px;
+  background: transparent;
+  transition: background-color 120ms ease;
+}
+
+.macos-popup:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.macos-popup:has(select:active) {
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .macos-popup select {
   -webkit-appearance: none;
   appearance: none;
-  width: 100%;
-  min-height: 28px;
+  width: auto;
+  max-width: 100%;
+  min-width: 4.5em;
+  min-height: 22px;
   border: 0;
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.06);
+  background: transparent;
   color: var(--text);
-  padding: 0 28px 0 10px;
+  padding: 3px 26px 3px 8px;
   font: inherit;
   font-size: 13px;
-  font-weight: 500;
-  line-height: 28px;
+  font-weight: 400;
+  line-height: 16px;
   box-shadow: none;
   cursor: default;
 }
 
 .macos-popup select:focus {
   outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
+  box-shadow: none;
 }
 
-.macos-popup select:active {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.macos-popup-chevron {
+.macos-popup-indicator {
   position: absolute;
   top: 50%;
-  right: 8px;
+  right: 3px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
   transform: translateY(-50%);
-  color: var(--muted);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--text);
   pointer-events: none;
+  transition:
+    border-radius 120ms ease,
+    background-color 120ms ease;
+}
+
+.macos-popup:hover .macos-popup-indicator,
+.macos-popup:has(select:active) .macos-popup-indicator {
+  border-radius: 4px;
+  background: transparent;
+}
+
+:root[data-theme="dark"] .macos-popup:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme="dark"] .macos-popup:has(select:active) {
+  background: rgba(255, 255, 255, 0.18);
 }
 
 :root[data-theme="dark"] .macos-popup select {
-  background: #1a1919;
-  color: #f5f5f7;
+  background: transparent;
+  color: var(--text);
   box-shadow: none;
 }
 
-:root[data-theme="dark"] .macos-popup select:active {
-  background: #242323;
+:root[data-theme="dark"] .macos-popup-indicator {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
 }
 
-.proxy-editor {
-  display: grid;
-  gap: 10px;
-  align-content: start;
-  padding: 14px;
-  border: 0;
-  border-radius: var(--inset-radius);
-  background: var(--surface-secondary);
-  box-shadow: inset 0 0 0 0.5px var(--border);
+:root[data-theme="dark"] .macos-popup:hover .macos-popup-indicator,
+:root[data-theme="dark"] .macos-popup:has(select:active) .macos-popup-indicator {
+  background: transparent;
 }
 
-:root[data-theme="dark"] .proxy-editor {
-  box-shadow: none;
+.proxy-url-switch-row {
+  gap: 12px;
 }
 
-.proxy-editor .field,
-.proxy-editor .segmented {
-  margin-bottom: 0;
-}
-
-.proxy-editor .subhead + .segmented {
-  margin-top: -2px;
-}
-
-.proxy-url-field {
-  display: grid;
-  gap: 6px;
-}
-
-.proxy-url-label {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 550;
-}
-
-.proxy-url-row {
+.proxy-url-controls {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
+  min-width: 0;
+  flex: 1 1 auto;
+  max-width: min(100%, 380px);
 }
 
-.proxy-url-row input {
-  flex: 1 1 180px;
+.proxy-url-controls input {
+  flex: 1 1 140px;
   min-width: 0;
-  min-height: 32px;
+  min-height: 28px;
   border: 1px solid var(--border);
   border-radius: var(--radius-control);
   background: #ffffff;
   color: var(--text);
   padding: 0 10px;
   font: inherit;
+  font-size: 13px;
 }
 
-.proxy-url-row input:focus {
+.proxy-url-controls input:focus {
   border-color: var(--accent);
   background: #ffffff;
   box-shadow: 0 0 0 3px var(--focus-ring);
   outline: none;
 }
 
-:root[data-theme="dark"] .proxy-url-row input {
+:root[data-theme="dark"] .proxy-url-controls input {
   border-color: var(--border-strong);
   background: var(--surface-secondary);
   box-shadow: none;
 }
 
-.proxy-url-row .compact {
+.proxy-url-controls .compact {
   flex: 0 0 auto;
-  min-height: 32px;
+  min-height: 28px;
 }
 
 .button-row {
@@ -1834,18 +2004,24 @@ select {
   margin-top: 12px;
 }
 
-.account-settings-header {
-  align-items: flex-start;
-  margin-bottom: 12px;
-}
-
-.account-settings-header .panel-title {
-  margin-bottom: 4px;
-}
-
 .account-add-actions {
   flex-shrink: 0;
   margin-top: 0;
+  padding-right: var(--card-pad);
+}
+
+.account-settings .account-form {
+  margin: 0;
+}
+
+.account-settings .account-error {
+  margin: 0;
+  padding: 0 var(--card-pad);
+}
+
+.account-name-stack strong {
+  font-size: 13px;
+  font-weight: 400;
 }
 
 .account-form {
@@ -1999,6 +2175,15 @@ select {
 .panel-actions {
   justify-content: flex-end;
   margin-top: 16px;
+}
+
+.settings-group-body .panel-actions {
+  margin-top: 14px;
+  margin-bottom: 0;
+}
+
+.settings-group-body .notice {
+  margin-top: 12px;
 }
 
 .notice,

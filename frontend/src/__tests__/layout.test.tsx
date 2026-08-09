@@ -115,23 +115,74 @@ describe("dashboard card layout", () => {
     );
   });
 
+  it("keeps settings group titles outside and aligned with row text", () => {
+    const styles = readFileSync(resolve("src/styles.css"), "utf8");
+    const groupTitle = styles.match(/\.settings-group-title\s*\{([^}]*)\}/)?.[1];
+    const groupPanel = styles.match(
+      /\.settings-group-panel\.panel\s*\{([^}]*)\}/,
+    )?.[1];
+    const rowLabel = styles.match(/\.switch-row strong\s*\{([^}]*)\}/)?.[1];
+
+    expect(groupTitle).toMatch(/font-size:\s*13px;/);
+    expect(groupTitle).toMatch(/font-weight:\s*650;/);
+    expect(groupTitle).toMatch(/padding:\s*0 var\(--card-pad\);/);
+    expect(rowLabel).toMatch(/font-size:\s*13px;/);
+    expect(groupPanel).toMatch(/padding:\s*0;/);
+  });
+
+  it("fades card content, brand mark, and sidebar directory when inactive", () => {
+    const styles = readFileSync(resolve("src/styles.css"), "utf8");
+    const inactiveContent = styles.match(
+      /\.window-inactive \.quota-card > \*,\s*\n\.window-inactive \.panel > \*,\s*\n\.window-inactive \.dashboard-empty > \*\s*\{([^}]*)\}/,
+    )?.[1];
+    const inactiveBrand = styles.match(
+      /\.window-inactive \.brand-mark\s*\{([^}]*)\}/,
+    )?.[1];
+    const inactiveNav = styles.match(
+      /\.window-inactive \.brand-copy,\s*\n\.window-inactive \.sidebar nav \.nav-item\s*\{([^}]*)\}/,
+    )?.[1];
+
+    expect(inactiveContent).toMatch(/opacity:\s*0\.48;/);
+    expect(inactiveBrand).toMatch(/opacity:\s*0\.45;/);
+    expect(inactiveNav).toMatch(/opacity:\s*0\.48;/);
+    expect(styles).not.toMatch(
+      /\.window-inactive \.quota-card,\s*\n\.window-inactive \.panel/,
+    );
+  });
+
   it("styles settings controls for press feedback, contrast, and inactive primary", () => {
     const styles = readFileSync(resolve("src/styles.css"), "utf8");
-    const primaryActive = styles.match(
-      /\.primary:active:not\(:disabled\)\s*\{([^}]*)\}/,
+    const primaryPress = styles.match(
+      /\.primary\[data-press="hover"\]:not\(:disabled\)\s*\{([^}]*)\}/,
+    )?.[1];
+    const primaryClick = styles.match(
+      /\.primary\[data-press="click"\]:not\(:disabled\)\s*\{([^}]*)\}/,
     )?.[1];
     const inactivePrimary = styles.match(
       /\.window-inactive \.primary\s*\{([^}]*)\}/,
     )?.[1];
-    const proxyEditor = styles.match(/\.proxy-editor\s*\{([^}]*)\}/)?.[1];
-    const proxySubhead = styles.match(
-      /\.proxy-editor \.subhead\s*\{([^}]*)\}/,
+    const nestedRow = styles.match(
+      /\.settings-group-panel > \.settings-nested-row\s*\{([^}]*)\}/,
+    )?.[1];
+    const groupRow = styles.match(
+      /\.settings-group-panel > \.switch-row,\s*\n\.settings-group-panel > \.settings-group-row\s*\{([^}]*)\}/,
     )?.[1];
 
-    expect(primaryActive).toMatch(/background:/);
+    expect(primaryPress).toMatch(/background:/);
+    expect(primaryClick).toMatch(/background:/);
+    expect(styles).not.toMatch(/\.primary:hover/);
+    expect(styles).not.toMatch(/\.toggle-switch:hover/);
     expect(inactivePrimary).toMatch(/background:\s*var\(--control-solid\);/);
-    expect(proxyEditor).toMatch(/gap:\s*10px;/);
-    expect(proxySubhead).toMatch(/margin-bottom:\s*0;/);
+    expect(styles).not.toMatch(/\.proxy-editor\s*\{/);
+    expect(groupRow).toMatch(/min-height:\s*44px;/);
+    expect(groupRow).toMatch(/padding:\s*11px var\(--card-pad\);/);
+    expect(nestedRow).toMatch(/padding-left:\s*calc\(var\(--card-pad\) \+ 40px\);/);
+    expect(styles).not.toMatch(
+      /\.settings-group-panel > \.settings-subtitle-row\s*\{[^}]*min-height:/,
+    );
+    expect(styles).toMatch(
+      /\.settings-subtitle-label,\s*\n\.settings-row-label\s*\{[^}]*font-weight:\s*400;/,
+    );
     expect(styles).toMatch(
       /:root\[data-theme="dark"\] \.segmented button\.active\s*\{[^}]*background:\s*#4a4949;/,
     );
@@ -139,5 +190,40 @@ describe("dashboard card layout", () => {
     expect(styles).toMatch(/--bg:\s*#ffffff;/);
     expect(styles).toMatch(/--panel-radius:\s*10px;/);
     expect(styles).toMatch(/--shadow-card:\s*0 0 0 0\.5px rgba\(0, 0, 0, 0\.06\);/);
+  });
+
+  it("keeps macOS popup selects width-stable with circle-to-rect hover", () => {
+    const styles = readFileSync(resolve("src/styles.css"), "utf8");
+    const popup = styles.match(/\.macos-popup\s*\{([^}]*)\}/)?.[1];
+    const select = styles.match(/\.macos-popup select\s*\{([^}]*)\}/)?.[1];
+    const indicator = styles.match(
+      /\.macos-popup-indicator\s*\{([^}]*)\}/,
+    )?.[1];
+    const indicatorHover = styles.match(
+      /\.macos-popup:hover \.macos-popup-indicator,\s*\n\.macos-popup:has\(select:active\) \.macos-popup-indicator\s*\{([^}]*)\}/,
+    )?.[1];
+
+    expect(popup).toMatch(/display:\s*inline-flex;/);
+    expect(popup).toMatch(/background:\s*transparent;/);
+    expect(select).toMatch(/width:\s*auto;/);
+    expect(select).toMatch(/color:\s*var\(--text\);/);
+    expect(indicator).toMatch(/border-radius:\s*999px;/);
+    expect(indicatorHover).toMatch(/border-radius:\s*4px;/);
+    expect(styles).toMatch(/\.macos-popup:hover\s*\{[^}]*background:/);
+    expect(styles).not.toMatch(/\.macos-popup:focus-within/);
+  });
+
+  it("uses one top divider for each overview forecast state", () => {
+    const styles = readFileSync(resolve("src/styles.css"), "utf8");
+    const trend = styles.match(/\.usage-trend\s*\{([^}]*)\}/)?.[1];
+    const estimate = styles.match(/\.estimate-note\s*\{([^}]*)\}/)?.[1];
+    const pending = styles.match(/\.trend-pending\s*\{([^}]*)\}/)?.[1];
+
+    expect(trend).toMatch(/border-top:\s*1px solid var\(--separator\);/);
+    expect(estimate).toMatch(/border-top:\s*1px solid var\(--separator\);/);
+    expect(pending).toMatch(/border-top:\s*1px solid var\(--separator\);/);
+    expect(trend).not.toMatch(/border-bottom:/);
+    expect(estimate).not.toMatch(/border-bottom:/);
+    expect(pending).not.toMatch(/border-bottom:/);
   });
 });

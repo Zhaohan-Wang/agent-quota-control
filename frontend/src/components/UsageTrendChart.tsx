@@ -128,6 +128,7 @@ export function UsageTrendChart({
 
   return (
     <div className={`usage-trend usage-trend-${currentTone}`}>
+      <TrendReport estimate={estimate} nowSecs={nowSecs} t={t} />
       <figure
         className="usage-trend-figure"
         role="img"
@@ -189,19 +190,13 @@ export function UsageTrendChart({
                 height={PLOT_HEIGHT}
               />
 
-              {[0, 100].map((utilization) => {
-                const y = yCoordinate(utilization);
-                return (
-                  <line
-                    key={utilization}
-                    className="trend-grid-line"
-                    x1={PLOT_LEFT}
-                    x2={VIEWBOX_WIDTH - PLOT_RIGHT}
-                    y1={y}
-                    y2={y}
-                  />
-                );
-              })}
+              <line
+                className="trend-grid-line"
+                x1={PLOT_LEFT}
+                x2={VIEWBOX_WIDTH - PLOT_RIGHT}
+                y1={yCoordinate(0)}
+                y2={yCoordinate(0)}
+              />
 
               <line
                 className="trend-now-line"
@@ -300,7 +295,6 @@ export function UsageTrendChart({
           </div>
         </div>
       </figure>
-      <TrendReport estimate={estimate} nowSecs={nowSecs} t={t} />
     </div>
   );
 }
@@ -323,15 +317,9 @@ function TrendReport({
   return (
     <div className="trend-report" role="status">
       <p className="trend-report-primary">{report.primary}</p>
-      <p
-        className={
-          report.detail
-            ? "trend-report-detail"
-            : "trend-report-detail trend-report-detail-spacer"
-        }
-      >
-        {report.detail ?? "\u00a0"}
-      </p>
+      {report.detail ? (
+        <p className="trend-report-detail">{report.detail}</p>
+      ) : null}
     </div>
   );
 }
@@ -530,33 +518,17 @@ function buildTrendReport(
     };
   }
 
-  const observedSpanSecs = estimate.observedSpanSecs;
-  const isStableShortTrend =
-    observedSpanSecs != null &&
-    observedSpanSecs >= 20 * 60 &&
-    observedSpanSecs < 30 * 60;
-  const windowLabel = isStableShortTrend
-    ? t("trend_window_short", { span: formatShortSpan(observedSpanSecs, t) })
-    : t("trend_window_hours", { hours: estimate.trendWindowHours });
-  const isFlat = estimate.slopePctPerHour === 0;
-  const rate = formatDecimal(estimate.slopePctPerHour ?? 0);
-
-  const paceDetail = isFlat
-    ? t("trend_detail_pace_flat", { window: windowLabel })
-    : t("trend_detail_pace_up", { window: windowLabel, rate });
-
   if (
     estimate.state === "not_enough" &&
     estimate.lastsForSecs != null &&
     estimate.resetInSecs != null
   ) {
-    // One timeline only: when it runs out. Don't also say "early by X" —
-    // that second countdown fights the primary and reads as a contradiction.
+    // Conclusion only — pace/window methodology stays out of the default UI.
     return {
       primary: t("trend_primary_exhaust", {
         duration: formatDuration(estimate.lastsForSecs, t),
       }),
-      detail: paceDetail,
+      detail: null,
     };
   }
 
@@ -567,7 +539,7 @@ function buildTrendReport(
         estimate.state === "tight"
           ? t("trend_primary_at_reset_tight", { percent })
           : t("trend_primary_at_reset", { percent }),
-      detail: paceDetail,
+      detail: null,
     };
   }
 
@@ -589,16 +561,6 @@ function chartAccessibleLabel(
     ? t("chart_projected", { percent: Math.round(projectedEnd.utilization) })
     : t("chart_projected_empty");
   return t("chart_aria", { actual, projected });
-}
-
-function formatShortSpan(seconds: number, t: Translator<"dashboard">): string {
-  return t("span_minutes", {
-    minutes: Math.max(1, Math.round(seconds / 60)),
-  });
-}
-
-function formatDecimal(value: number): string {
-  return value.toFixed(1).replace(/\.0$/, "");
 }
 
 function formatDuration(seconds: number, t: Translator<"dashboard">): string {

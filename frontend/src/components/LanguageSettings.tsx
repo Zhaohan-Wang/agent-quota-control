@@ -1,5 +1,5 @@
-import { ChevronDown, Languages } from "lucide-react";
 import { useLocale, useTranslations, type Locale } from "../i18n";
+import { MacosPopupSelect } from "./MacosPopupSelect";
 
 const localeOptions: Array<{ id: Locale; labelKey: "locale_zh_cn" | "locale_en" }> = [
   { id: "zh-CN", labelKey: "locale_zh_cn" },
@@ -11,25 +11,21 @@ export function LanguageSettings() {
   const { locale, setLocale } = useLocale();
 
   return (
-    <section className="panel">
-      <div className="panel-title">
-        <Languages size={15} strokeWidth={1.75} aria-hidden />
-        {t("language")}
-      </div>
-      <div className="macos-popup">
-        <select
-          value={locale}
-          aria-label={t("language")}
-          onChange={(event) => setLocale(event.currentTarget.value as Locale)}
-        >
-          {localeOptions.map((option) => (
-            <option key={option.id} value={option.id}>
-              {t(option.labelKey)}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="macos-popup-chevron" size={14} strokeWidth={2} aria-hidden />
-      </div>
-    </section>
+    <div className="switch-row">
+      <span id="language-row-label">
+        <strong>{t("language_mode")}</strong>
+      </span>
+      <MacosPopupSelect
+        value={locale}
+        aria-labelledby="language-row-label"
+        onChange={(event) => setLocale(event.currentTarget.value as Locale)}
+      >
+        {localeOptions.map((option) => (
+          <option key={option.id} value={option.id}>
+            {t(option.labelKey)}
+          </option>
+        ))}
+      </MacosPopupSelect>
+    </div>
   );
 }

@@ -35,17 +35,24 @@ describe("UsageTrendChart", () => {
     render(<UsageTrendChart estimate={trendEstimate()} nowSecs={NOW} />);
 
     expect(
-      screen.getByRole("img", { name: /实际用量.*近期趋势预测/ }),
+      screen.getByRole("img", { name: /7 天用量趋势.*当前已用.*预计将达到/ }),
     ).toBeInTheDocument();
-    expect(screen.getByText("预计 18 小时后用完")).toBeInTheDocument();
     expect(
-      screen.getByText(
-        "根据最近 24 小时的变化，用量大约每小时增加 1.4%。",
-      ),
+      screen.getByText("按照目前的用量，预计还可使用约 18 小时。"),
     ).toBeInTheDocument();
+    expect(screen.queryByText(/根据最近/)).not.toBeInTheDocument();
     expect(screen.queryByText(/提前/)).not.toBeInTheDocument();
     expect(document.querySelector(".trend-outcome")).toBeNull();
     expect(document.querySelector(".trend-exhaustion-point")).not.toBeNull();
+    const report = document.querySelector(".trend-report");
+    const figure = document.querySelector(".usage-trend-figure");
+    expect(report).not.toBeNull();
+    expect(figure).not.toBeNull();
+    expect(
+      report && figure
+        ? report.compareDocumentPosition(figure) & Node.DOCUMENT_POSITION_FOLLOWING
+        : 0,
+    ).toBeTruthy();
     expect(
       screen.getByTestId("observed-usage-line").getAttribute("stroke"),
     ).toMatch(/^url\(#trend-stroke-/);
@@ -68,8 +75,8 @@ describe("UsageTrendChart", () => {
     );
 
     expect(screen.getByText("本周期已在重置前用完")).toBeInTheDocument();
-    expect(screen.getByText("比本次重置大约提前了 1 天。")).toBeInTheDocument();
-    expect(screen.queryByText(/预计 .*后用完/)).not.toBeInTheDocument();
+    expect(screen.getByText("比本周期重置时间早约 1 天")).toBeInTheDocument();
+    expect(screen.queryByText(/预计还可使用/)).not.toBeInTheDocument();
   });
 
   it("labels a healthy forecast with projected reset usage", () => {
@@ -98,12 +105,10 @@ describe("UsageTrendChart", () => {
       />,
     );
 
-    expect(screen.getByText("预计重置时约 62%")).toBeInTheDocument();
     expect(
-      screen.getByText(
-        "根据最近 20 分钟的变化，用量大约每小时增加 12%。",
-      ),
+      screen.getByText("按照目前的用量，重置时预计约为 62%。"),
     ).toBeInTheDocument();
+    expect(screen.queryByText(/根据最近/)).not.toBeInTheDocument();
   });
 
   it("shows observed history without inventing a projection while samples accumulate", () => {
@@ -121,7 +126,7 @@ describe("UsageTrendChart", () => {
       />,
     );
 
-    expect(screen.getByText("正在积累趋势数据")).toBeInTheDocument();
+    expect(screen.getByText("正在分析用量…")).toBeInTheDocument();
     expect(screen.getByTestId("observed-usage-line")).toBeInTheDocument();
     expect(screen.queryByTestId("projected-usage-line")).not.toBeInTheDocument();
   });
@@ -150,6 +155,8 @@ describe("UsageTrendChart", () => {
     expect(screen.getByText("100%")).toBeInTheDocument();
     expect(screen.queryByText("50%")).not.toBeInTheDocument();
     expect(document.querySelector(".trend-now-line")).not.toBeNull();
+    // Only the 0% baseline — a top grid line reads as a second divider.
+    expect(document.querySelectorAll(".trend-grid-line")).toHaveLength(1);
   });
 
   it("shows a hover tip for the nearest sample on the chart", () => {
@@ -173,9 +180,9 @@ describe("UsageTrendChart", () => {
       toJSON: () => ({}),
     });
 
-    // Left side of the plot → observed series (“已用”).
+    // Left side of the plot → observed series.
     fireEvent.mouseMove(svg, { clientX: 24, clientY: 40 });
-    expect(screen.getByRole("tooltip")).toHaveTextContent(/已用/);
+    expect(screen.getByRole("tooltip")).toHaveTextContent(/用量为/);
     expect(screen.getByTestId("trend-hover-mark")).toBeInTheDocument();
 
     // Right of the “now” marker → projected series (“预计”).
@@ -202,10 +209,11 @@ describe("UsageTrendChart", () => {
       />,
     );
 
-    expect(screen.getByRole("status")).toHaveTextContent("趋势图正在建立");
+    expect(screen.getByRole("status")).toHaveTextContent("正在分析用量");
     expect(
-      screen.getByText(/短期预测至少需要 5 个样本并稳定覆盖 20 分钟/),
+      screen.getByText("收集更多用量数据后，将显示趋势预测。"),
     ).toBeInTheDocument();
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(document.querySelector(".usage-trend")).toBeNull();
   });
 });
