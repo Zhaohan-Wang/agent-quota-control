@@ -30,6 +30,9 @@
     "waiting_first_refresh": "Fetching first usage sample…",
     "tier_5h": "5 hours",
     "tier_7d": "7 days",
+    "usage_week_caption": "Last 7 days",
+    "usage_week_aria": "Usage over the last 7 days",
+    "usage_week_day_aria": "{date}: about {burn}% used",
     "no_5h_limit": "No 5-hour limit",
     "projected_usage": "Projected usage",
     "accumulating": "Collecting",
@@ -52,6 +55,7 @@
     "duration_hours": "{hours}h",
     "duration_minutes": "{minutes}m",
     "reset_datetime": "{month}/{day} {hour}:{minute}",
+    "reset_date": "{month}/{day}",
     "proxy_connected": "Proxy connected",
     "proxy_direct": "Direct",
     "proxy_down": "Proxy unavailable",
@@ -79,6 +83,8 @@
     "chart_projected": "Near-term forecast reaches {percent}%",
     "chart_projected_empty": "Near-term forecast still collecting",
     "chart_aria": "7-day usage chart: {actual}; {projected}.",
+    "trend_hover_observed": "{date}: {percent}% used",
+    "trend_hover_projected": "{date}: projected {percent}%",
     "span_minutes": "{minutes} minutes"
   },
   "monitoring": {

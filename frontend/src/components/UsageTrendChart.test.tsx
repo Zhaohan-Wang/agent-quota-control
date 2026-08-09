@@ -1,5 +1,5 @@
-import { screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { renderWithI18n as render } from "../test/render";
 import type { QuotaEstimate } from "../types";
 import { UsageTrendChart } from "./UsageTrendChart";
@@ -150,6 +150,40 @@ describe("UsageTrendChart", () => {
     expect(screen.getByText("100%")).toBeInTheDocument();
     expect(screen.queryByText("50%")).not.toBeInTheDocument();
     expect(document.querySelector(".trend-now-line")).not.toBeNull();
+  });
+
+  it("shows a hover tip for the nearest sample on the chart", () => {
+    render(<UsageTrendChart estimate={trendEstimate()} nowSecs={NOW} />);
+
+    const svg = document.querySelector(
+      ".usage-trend-chart",
+    ) as SVGSVGElement | null;
+    expect(svg).not.toBeNull();
+    if (!svg) return;
+
+    vi.spyOn(svg, "getBoundingClientRect").mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      right: 320,
+      bottom: 120,
+      width: 320,
+      height: 120,
+      toJSON: () => ({}),
+    });
+
+    // Left side of the plot → observed series (“已用”).
+    fireEvent.mouseMove(svg, { clientX: 24, clientY: 40 });
+    expect(screen.getByRole("tooltip")).toHaveTextContent(/已用/);
+    expect(screen.getByTestId("trend-hover-mark")).toBeInTheDocument();
+
+    // Right of the “now” marker → projected series (“预计”).
+    fireEvent.mouseMove(svg, { clientX: 300, clientY: 40 });
+    expect(screen.getByRole("tooltip")).toHaveTextContent(/预计/);
+
+    fireEvent.mouseLeave(svg);
+    expect(screen.queryByRole("tooltip")).toBeNull();
   });
 
   it("uses a compact pending state instead of an empty chart for a single sample", () => {

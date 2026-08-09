@@ -39,6 +39,11 @@ export interface UsageChartPoint {
   utilization: number;
 }
 
+export interface UsageWeekDay {
+  dayStartSecs: number;
+  burnPct: number;
+}
+
 export interface ServiceQuota {
   service: string;
   displayName: string;
@@ -116,6 +121,7 @@ export interface CardSnapshot {
   status: CardStatus;
   tiers: QuotaTier[];
   weeklyEstimate?: QuotaEstimate | null;
+  usageWeek?: UsageWeekDay[];
   proxy: ProxyTestResult;
   queriedAt?: number | null;
   lastSuccessfulAt?: number | null;

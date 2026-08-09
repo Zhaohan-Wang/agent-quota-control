@@ -1,5 +1,6 @@
 use crate::types::{
     MonitorAccount, ProxyTestResult, QuotaEstimate, QuotaTier, ServiceKind, ServiceQuota,
+    UsageWeekDay,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -30,6 +31,8 @@ pub struct CardSnapshot {
     pub status: CardStatus,
     pub tiers: Vec<QuotaTier>,
     pub weekly_estimate: Option<QuotaEstimate>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub usage_week: Vec<UsageWeekDay>,
     pub proxy: ProxyTestResult,
     pub queried_at: Option<i64>,
     pub last_successful_at: Option<i64>,
@@ -165,6 +168,7 @@ pub(crate) fn build_card_snapshot(
     current_quota: Option<&ServiceQuota>,
     last_successful_quota: Option<&ServiceQuota>,
     weekly_estimate: Option<QuotaEstimate>,
+    usage_week: Vec<UsageWeekDay>,
     proxy: ProxyTestResult,
     now_ms: i64,
 ) -> CardSnapshot {
@@ -203,6 +207,7 @@ pub(crate) fn build_card_snapshot(
             .map(|quota| quota.tiers.clone())
             .unwrap_or_default(),
         weekly_estimate,
+        usage_week,
         proxy,
         queried_at: current_quota.and_then(|quota| quota.queried_at),
         last_successful_at: successful_quota.and_then(|quota| quota.queried_at),
@@ -285,6 +290,7 @@ mod tests {
                 exhausted_before_reset_secs: None,
                 ..Default::default()
             }),
+            vec![],
             ProxyTestResult {
                 status: "direct".to_string(),
                 proxy_url: None,
@@ -312,6 +318,7 @@ mod tests {
             Some(&current),
             Some(&previous),
             None,
+            vec![],
             ProxyTestResult {
                 status: "direct".to_string(),
                 proxy_url: None,
@@ -339,6 +346,7 @@ mod tests {
             Some(&current),
             None,
             None,
+            vec![],
             ProxyTestResult {
                 status: "unavailable".to_string(),
                 proxy_url: None,
@@ -359,6 +367,7 @@ mod tests {
             Some(&current),
             None,
             None,
+            vec![],
             ProxyTestResult {
                 status: "direct".to_string(),
                 proxy_url: None,
@@ -421,6 +430,7 @@ mod tests {
             Some(&quota(true, true, NOW_MS)),
             None,
             None,
+            vec![],
             ProxyTestResult {
                 status: "direct".to_string(),
                 proxy_url: None,
@@ -448,6 +458,7 @@ mod tests {
             Some(&quota(true, true, NOW_MS)),
             None,
             None,
+            vec![],
             ProxyTestResult {
                 status: "direct".to_string(),
                 proxy_url: None,

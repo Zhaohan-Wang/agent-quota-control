@@ -384,6 +384,11 @@ pub fn dashboard_state(state: &SharedRuntimeState) -> Result<DashboardState, Str
                 .iter()
                 .find(|entry| matches!(entry.tier.as_str(), "weekly_limit" | "seven_day"))
                 .map(|entry| entry.estimate.clone());
+            let usage_week = crate::usage_history::week_burn_for_service(
+                &usage_history,
+                estimator_service_key(account),
+                now_ms / 1000,
+            );
             let proxy = match account.service {
                 ServiceKind::Kimi => proxy_status.kimi.clone(),
                 ServiceKind::Codex => proxy_status.codex.clone(),
@@ -393,6 +398,7 @@ pub fn dashboard_state(state: &SharedRuntimeState) -> Result<DashboardState, Str
                 quota,
                 last_successful_quota,
                 weekly_estimate,
+                usage_week,
                 proxy,
                 now_ms,
             )

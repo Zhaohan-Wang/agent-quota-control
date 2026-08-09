@@ -22,6 +22,18 @@ zh-CN = "5 小时"
 en = "7 days"
 zh-CN = "7 天"
 
+[usage_week_caption]
+en = "Last 7 days"
+zh-CN = "近 7 日"
+
+[usage_week_aria]
+en = "Usage over the last 7 days"
+zh-CN = "近 7 日用量"
+
+[usage_week_day_aria]
+en = "{date}: about {burn}% used"
+zh-CN = "{date}：约增加 {burn}%"
+
 [no_5h_limit]
 en = "No 5-hour limit"
 zh-CN = "当前无 5 小时限制"
@@ -109,6 +121,10 @@ zh-CN = "{minutes} 分钟"
 [reset_datetime]
 en = "{month}/{day} {hour}:{minute}"
 zh-CN = "{month}月{day}日 {hour}:{minute}"
+
+[reset_date]
+en = "{month}/{day}"
+zh-CN = "{month}月{day}日"
 
 [proxy_connected]
 en = "Proxy connected"
@@ -217,6 +233,14 @@ zh-CN = "近期趋势预测正在积累数据"
 [chart_aria]
 en = "7-day usage chart: {actual}; {projected}."
 zh-CN = "7 天用量趋势图：{actual}；{projected}。"
+
+[trend_hover_observed]
+en = "{date}: {percent}% used"
+zh-CN = "{date}：已用 {percent}%"
+
+[trend_hover_projected]
+en = "{date}: projected {percent}%"
+zh-CN = "{date}：预计 {percent}%"
 
 [span_minutes]
 en = "{minutes} minutes"

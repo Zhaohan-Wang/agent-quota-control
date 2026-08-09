@@ -30,6 +30,9 @@
     "waiting_first_refresh": "正在获取首次用量…",
     "tier_5h": "5 小时",
     "tier_7d": "7 天",
+    "usage_week_caption": "近 7 日",
+    "usage_week_aria": "近 7 日用量",
+    "usage_week_day_aria": "{date}：约增加 {burn}%",
     "no_5h_limit": "当前无 5 小时限制",
     "projected_usage": "预计用量",
     "accumulating": "积累中",
@@ -52,6 +55,7 @@
     "duration_hours": "{hours} 小时",
     "duration_minutes": "{minutes} 分钟",
     "reset_datetime": "{month}月{day}日 {hour}:{minute}",
+    "reset_date": "{month}月{day}日",
     "proxy_connected": "代理已连接",
     "proxy_direct": "当前直连",
     "proxy_down": "代理未连通",
@@ -79,6 +83,8 @@
     "chart_projected": "近期趋势预测到 {percent}%",
     "chart_projected_empty": "近期趋势预测正在积累数据",
     "chart_aria": "7 天用量趋势图：{actual}；{projected}。",
+    "trend_hover_observed": "{date}：已用 {percent}%",
+    "trend_hover_projected": "{date}：预计 {percent}%",
     "span_minutes": "{minutes} 分钟"
   },
   "monitoring": {

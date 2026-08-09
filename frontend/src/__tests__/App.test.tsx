@@ -141,6 +141,11 @@ const dashboardState: DashboardState = {
           },
         ],
       },
+      usageWeek: Array.from({ length: 7 }, (_, index) => ({
+        dayStartSecs:
+          Math.floor(fixedNow / 1_000) - (6 - index) * 86_400,
+        burnPct: [0, 1.2, 0, 3.5, 2.1, 0.4, 4.8][index],
+      })),
       proxy: { status: "direct", proxyUrl: null, message: "Direct" },
       queriedAt: Date.now(),
       lastSuccessfulAt: Date.now(),
@@ -160,6 +165,11 @@ const dashboardState: DashboardState = {
         projectedUtilization: 188,
         lastsForSecs: 93_600,
       },
+      usageWeek: Array.from({ length: 7 }, (_, index) => ({
+        dayStartSecs:
+          Math.floor(fixedNow / 1_000) - (6 - index) * 86_400,
+        burnPct: [2, 5, 8, 0, 12, 6, 9][index],
+      })),
       proxy: {
         status: "proxy",
         proxyUrl: "http://127.0.0.1:7897",
@@ -256,21 +266,51 @@ describe("App", () => {
 
     expect(within(kimiCard).getByText("够用")).toBeInTheDocument();
     expect(within(codexCard).getByText("不够")).toBeInTheDocument();
+    expect(
+      kimiCard.querySelector(".status-badge.enough .lucide-circle-check"),
+    ).not.toBeNull();
+    expect(
+      codexCard.querySelector(".status-badge.not_enough .lucide-circle-x"),
+    ).not.toBeNull();
     expect(within(kimiCard).getByRole("heading", { name: "Kimi 工作账号" })).toBeInTheDocument();
     expect(within(kimiCard).getByText("Kimi Code")).toBeInTheDocument();
     expect(within(codexCard).getByRole("heading", { name: "Codex 个人账号" })).toBeInTheDocument();
     expect(within(codexCard).queryByText("当前无 5 小时限制")).not.toBeInTheDocument();
 
-    const kimiTierSlots = kimiCard.querySelectorAll(".tier-row");
-    const codexTierSlots = codexCard.querySelectorAll(".tier-row");
+    expect(kimiCard.querySelector(".tier-pair")).not.toBeNull();
+    expect(codexCard.querySelector(".tier-pair")).toBeNull();
+    const kimiTierSlots = kimiCard.querySelectorAll(".tier-pair .tier-row");
+    const codexTierSlots = codexCard.querySelectorAll(".tier-stack .tier-row");
     expect(kimiTierSlots).toHaveLength(2);
     expect(codexTierSlots).toHaveLength(1);
     expect(kimiTierSlots[0]).toHaveTextContent("7 天");
     expect(kimiTierSlots[1]).toHaveTextContent("5 小时");
     expect(codexTierSlots[0]).toHaveTextContent("7 天");
+    expect(
+      kimiTierSlots[0]?.querySelector(
+        ".tier-heading [aria-label='近 7 日用量']",
+      ),
+    ).not.toBeNull();
+    expect(
+      kimiTierSlots[0]?.querySelector(".tier-heading .usage-week"),
+    ).not.toBeNull();
+    expect(kimiTierSlots[0]?.querySelectorAll(".usage-week-cell")).toHaveLength(
+      7,
+    );
+    expect(kimiTierSlots[1]?.querySelector(".usage-week")).toBeNull();
+    expect(
+      codexTierSlots[0]?.querySelector(".tier-heading .usage-week"),
+    ).not.toBeNull();
+    expect(codexTierSlots[0]?.classList.contains("tier-row-compact")).toBe(
+      true,
+    );
+    expect(
+      codexTierSlots[0]?.querySelectorAll(".usage-week-cell"),
+    ).toHaveLength(7);
 
-    expect(screen.getByText("（2 小时 15 分钟后重置）")).toBeInTheDocument();
-    expect(screen.getByText(/06月07日 .* 重置/)).toBeInTheDocument();
+    expect(within(kimiCard).getByText("2 小时 15 分钟后重置")).toBeInTheDocument();
+    expect(within(kimiCard).getByText("3 天 10 小时后重置")).toBeInTheDocument();
+    expect(within(kimiCard).queryByText(/06月07日/)).not.toBeInTheDocument();
     const proxyStatus = screen.getByLabelText("代理状态");
     expect(within(proxyStatus).getByText("Kimi")).toBeInTheDocument();
     expect(within(proxyStatus).getByText("Codex")).toBeInTheDocument();

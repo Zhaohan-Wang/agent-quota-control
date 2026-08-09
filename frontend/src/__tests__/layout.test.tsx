@@ -5,12 +5,31 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("dashboard card layout", () => {
+  it("lets trend data ink scale with the chart instead of pinning stroke width", () => {
+    const styles = readFileSync(resolve("src/styles.css"), "utf8");
+    const observedRule = styles.match(
+      /\.trend-observed-line,\s*\n\.trend-projected-line\s*\{([^}]*)\}/,
+    )?.[1];
+    const pointRule = styles.match(/\.trend-observed-point\s*\{([^}]*)\}/)?.[1];
+
+    expect(observedRule).toBeDefined();
+    expect(observedRule).not.toMatch(/vector-effect:\s*non-scaling-stroke/);
+    expect(pointRule).not.toMatch(/vector-effect:\s*non-scaling-stroke/);
+    expect(styles).toMatch(
+      /\.trend-grid-line,\s*\n\.trend-now-line\s*\{[^}]*vector-effect:\s*non-scaling-stroke/,
+    );
+  });
+
   it("lets quota cards grow with their chart and status content", () => {
     const styles = readFileSync(resolve("src/styles.css"), "utf8");
     const quotaCardRule = styles.match(/\.quota-card\s*\{([^}]*)\}/)?.[1];
+    const gridRule = styles.match(/\.dashboard-grid\s*\{([^}]*)\}/)?.[1];
 
     expect(quotaCardRule).toBeDefined();
     expect(quotaCardRule).not.toMatch(/(?:^|\n)\s*height:\s*100%;/);
+    expect(quotaCardRule).toMatch(/height:\s*auto;/);
+    expect(quotaCardRule).not.toMatch(/min-height:\s*0;/);
+    expect(gridRule).toMatch(/grid-auto-rows:\s*auto;/);
   });
 
   it("keeps populated quota tiers at a consistent row height", () => {
@@ -40,12 +59,26 @@ describe("dashboard card layout", () => {
     expect(scrollerRule).toMatch(/overflow:\s*auto;/);
     expect(scrollerRule).toMatch(/margin-right:\s*calc\(-1 \* var\(--window-inset\)\);/);
     expect(scrollerRule).toMatch(/mask-image:/);
-    expect(scrollerRule).toMatch(/mask-size:\s*calc\(100% - 10px\) 100%, 10px 100%;/);
+    expect(scrollerRule).toMatch(
+      /mask-size:\s*calc\(100% - var\(--scrollbar-reserve\)\) 100%,\s*\n\s*var\(--scrollbar-reserve\) 100%;/,
+    );
     expect(bodyRule).not.toMatch(/mask-image:/);
     expect(trackRule).toMatch(/margin-top:\s*52px;/);
     expect(thumbHoverRule).not.toMatch(/transform:\s*scale/);
     expect(thumbHoverRule).toMatch(/width:\s*8px;/);
     expect(styles).toMatch(/--scrollbar-thumb:\s*#9b9b9b;/);
+    expect(styles).toMatch(/--scrollbar-reserve:\s*12px;/);
+  });
+
+  it("keeps top chrome clear of the native scrollbar strip", () => {
+    const styles = readFileSync(resolve("src/styles.css"), "utf8");
+    const topbarRule = styles.match(/\.topbar\s*\{([^}]*)\}/)?.[1];
+    const edgeRule = styles.match(/\.scroll-edge-effect\s*\{([^}]*)\}/)?.[1];
+
+    expect(topbarRule).toMatch(/right:\s*var\(--scrollbar-reserve\);/);
+    expect(edgeRule).toMatch(
+      /width:\s*calc\(100% - var\(--scrollbar-reserve\)\);/,
+    );
   });
 
   it("uses native non-selectable text while keeping form controls editable", () => {

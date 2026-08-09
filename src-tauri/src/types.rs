@@ -101,6 +101,14 @@ pub struct UsageChartPoint {
     pub utilization: f64,
 }
 
+/// One day in the compact week activity lattice (GitHub-style cells).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct UsageWeekDay {
+    pub day_start_secs: i64,
+    pub burn_pct: f64,
+}
+
 /// 统一用量查询结果
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

@@ -1,5 +1,5 @@
 import { ChartSpline } from "lucide-react";
-import { useId } from "react";
+import { useId, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { useTranslations } from "../i18n";
 import type { Translator } from "../i18n/translate";
 import type { QuotaEstimate, UsageChartPoint } from "../types";
@@ -14,12 +14,13 @@ interface UsageTrendChartProps {
   nowSecs?: number;
 }
 
-const VIEWBOX_WIDTH = 360;
-const VIEWBOX_HEIGHT = 158;
-const PLOT_LEFT = 28;
-const PLOT_RIGHT = 12;
-const PLOT_TOP = 16;
-const PLOT_BOTTOM = 26;
+/** Plot-only viewBox — axis labels live in HTML so they keep a fixed CSS size. */
+const VIEWBOX_WIDTH = 320;
+const VIEWBOX_HEIGHT = 120;
+const PLOT_LEFT = 2;
+const PLOT_RIGHT = 2;
+const PLOT_TOP = 10;
+const PLOT_BOTTOM = 6;
 const PLOT_WIDTH = VIEWBOX_WIDTH - PLOT_LEFT - PLOT_RIGHT;
 const PLOT_HEIGHT = VIEWBOX_HEIGHT - PLOT_TOP - PLOT_BOTTOM;
 /** Dense samples look like a polyline; draw through fewer anchors so cubics read as smooth. */
@@ -31,12 +32,22 @@ const TONE_CSS: Record<UsageTone, string> = {
   danger: "var(--danger)",
 };
 
+interface HoverSample {
+  x: number;
+  y: number;
+  utilization: number;
+  atSecs: number;
+  kind: "observed" | "projected";
+}
+
 export function UsageTrendChart({
   estimate,
   nowSecs = Math.floor(Date.now() / 1_000),
 }: UsageTrendChartProps) {
   const t = useTranslations("dashboard");
   const gradientId = useId().replace(/:/g, "");
+  const tipId = useId();
+  const [hover, setHover] = useState<HoverSample | null>(null);
   const observedPoints = estimate.observedPoints ?? [];
   const projectedPoints = estimate.projectedPoints ?? [];
   const windowStart = estimate.windowStartSecs;
@@ -87,6 +98,33 @@ export function UsageTrendChart({
   const yAt100 = yCoordinate(100);
   const currentTone = usageTone(latestObserved?.utilization ?? 0);
   const currentCss = TONE_CSS[currentTone];
+  const hoverTone = hover ? usageTone(hover.utilization) : currentTone;
+  const hoverCss = TONE_CSS[hoverTone];
+  const hoverTip =
+    hover == null
+      ? null
+      : t(
+          hover.kind === "projected"
+            ? "trend_hover_projected"
+            : "trend_hover_observed",
+          {
+            date: formatAxisDate(hover.atSecs),
+            percent: Math.round(hover.utilization),
+          },
+        );
+
+  const onPlotHover = (event: ReactMouseEvent<SVGSVGElement>) => {
+    const sample = sampleAtPointer(
+      event.currentTarget,
+      event.clientX,
+      observedPoints,
+      projectedPoints,
+      windowStart,
+      windowEnd,
+      nowSecs,
+    );
+    setHover(sample);
+  };
 
   return (
     <div className={`usage-trend usage-trend-${currentTone}`}>
@@ -95,131 +133,172 @@ export function UsageTrendChart({
         role="img"
         aria-label={accessibleLabel}
       >
-        <svg
-          className="usage-trend-chart"
-          viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
-          aria-hidden="true"
-        >
-          <defs>
-            <linearGradient
-              id={strokeGradientId}
-              gradientUnits="userSpaceOnUse"
-              x1={PLOT_LEFT}
-              y1={yAt0}
-              x2={PLOT_LEFT}
-              y2={yAt100}
+        <div className="usage-trend-plot">
+          <div className="usage-trend-y" aria-hidden="true">
+            <span className="trend-axis-label">100%</span>
+            <span className="trend-axis-label">0%</span>
+          </div>
+          <div className="usage-trend-chart-shell">
+            <svg
+              className="usage-trend-chart"
+              viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
+              aria-hidden="true"
+              onMouseMove={onPlotHover}
+              onMouseEnter={onPlotHover}
+              onMouseLeave={() => setHover(null)}
             >
-              {USAGE_GRADIENT_STOPS.map((stop) => (
-                <stop
-                  key={`${stop.offset}-${stop.tone}`}
-                  offset={`${stop.offset}%`}
-                  stopColor={TONE_CSS[stop.tone]}
-                />
-              ))}
-            </linearGradient>
-            {/* Fade to fully clear at the baseline — object box bottom = chart floor. */}
-            <linearGradient
-              id={areaGradientId}
-              gradientUnits="objectBoundingBox"
-              x1="0"
-              y1="0"
-              x2="0"
-              y2="1"
-            >
-              <stop offset="0%" stopColor={currentCss} stopOpacity="0.32" />
-              <stop offset="35%" stopColor={currentCss} stopOpacity="0.14" />
-              <stop offset="72%" stopColor={currentCss} stopOpacity="0.04" />
-              <stop offset="100%" stopColor={currentCss} stopOpacity="0" />
-            </linearGradient>
-          </defs>
-
-          {[0, 100].map((utilization) => {
-            const y = yCoordinate(utilization);
-            return (
-              <g key={utilization}>
-                <line
-                  className="trend-grid-line"
+              <defs>
+                <linearGradient
+                  id={strokeGradientId}
+                  gradientUnits="userSpaceOnUse"
                   x1={PLOT_LEFT}
-                  x2={VIEWBOX_WIDTH - PLOT_RIGHT}
-                  y1={y}
-                  y2={y}
+                  y1={yAt0}
+                  x2={PLOT_LEFT}
+                  y2={yAt100}
+                >
+                  {USAGE_GRADIENT_STOPS.map((stop) => (
+                    <stop
+                      key={`${stop.offset}-${stop.tone}`}
+                      offset={`${stop.offset}%`}
+                      stopColor={TONE_CSS[stop.tone]}
+                    />
+                  ))}
+                </linearGradient>
+                {/* Fade to fully clear at the baseline — object box bottom = chart floor. */}
+                <linearGradient
+                  id={areaGradientId}
+                  gradientUnits="objectBoundingBox"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="0%" stopColor={currentCss} stopOpacity="0.32" />
+                  <stop offset="35%" stopColor={currentCss} stopOpacity="0.14" />
+                  <stop offset="72%" stopColor={currentCss} stopOpacity="0.04" />
+                  <stop offset="100%" stopColor={currentCss} stopOpacity="0" />
+                </linearGradient>
+              </defs>
+
+              {/* Invisible hit target so empty plot areas still receive pointer events. */}
+              <rect
+                className="trend-hit-area"
+                x={PLOT_LEFT}
+                y={PLOT_TOP}
+                width={PLOT_WIDTH}
+                height={PLOT_HEIGHT}
+              />
+
+              {[0, 100].map((utilization) => {
+                const y = yCoordinate(utilization);
+                return (
+                  <line
+                    key={utilization}
+                    className="trend-grid-line"
+                    x1={PLOT_LEFT}
+                    x2={VIEWBOX_WIDTH - PLOT_RIGHT}
+                    y1={y}
+                    y2={y}
+                  />
+                );
+              })}
+
+              <line
+                className="trend-now-line"
+                x1={nowX}
+                x2={nowX}
+                y1={PLOT_TOP + 4}
+                y2={PLOT_TOP + PLOT_HEIGHT - 2}
+              />
+
+              {observedAreaPath && (
+                <path
+                  className="trend-observed-area"
+                  d={observedAreaPath}
+                  fill={`url(#${areaGradientId})`}
                 />
-                <text className="trend-axis-label" x={PLOT_LEFT - 6} y={y + 3.5}>
-                  {utilization}%
-                </text>
-              </g>
-            );
-          })}
-
-          <line
-            className="trend-now-line"
-            x1={nowX}
-            x2={nowX}
-            y1={PLOT_TOP + 6}
-            y2={PLOT_TOP + PLOT_HEIGHT - 4}
-          />
-
-          {observedAreaPath && (
-            <path
-              className="trend-observed-area"
-              d={observedAreaPath}
-              fill={`url(#${areaGradientId})`}
-            />
-          )}
-          {observedPath && (
-            <path
-              data-testid="observed-usage-line"
-              className="trend-observed-line"
-              d={observedPath}
-              stroke={`url(#${strokeGradientId})`}
-            />
-          )}
-          {projectedPath && (
-            <path
-              data-testid="projected-usage-line"
-              className="trend-projected-line"
-              d={projectedPath}
-              stroke={`url(#${strokeGradientId})`}
-            />
-          )}
-
-          {latestObserved && (
-            <g
-              className="trend-current-mark"
-              transform={`translate(${xCoordinate(
-                latestObserved.observedAtSecs,
-                windowStart,
-                windowEnd,
-              )} ${yCoordinate(latestObserved.utilization)})`}
-            >
-              <circle className="trend-observed-halo" r="8" fill={currentCss} />
-              <circle className="trend-observed-point" r="3.4" fill={currentCss} />
-            </g>
-          )}
-          {showExhaustion && projectedEnd && (
-            <circle
-              className="trend-exhaustion-point"
-              cx={xCoordinate(
-                projectedEnd.observedAtSecs,
-                windowStart,
-                windowEnd,
               )}
-              cy={yCoordinate(100)}
-              r="3.1"
-            />
-          )}
+              {observedPath && (
+                <path
+                  data-testid="observed-usage-line"
+                  className="trend-observed-line"
+                  d={observedPath}
+                  stroke={`url(#${strokeGradientId})`}
+                />
+              )}
+              {projectedPath && (
+                <path
+                  data-testid="projected-usage-line"
+                  className="trend-projected-line"
+                  d={projectedPath}
+                  stroke={`url(#${strokeGradientId})`}
+                />
+              )}
 
-          <text className="trend-date-label start" x={PLOT_LEFT} y={VIEWBOX_HEIGHT - 6}>
-            {formatAxisDate(windowStart)}
-          </text>
-          <text
-            className="trend-date-label end"
-            x={VIEWBOX_WIDTH - PLOT_RIGHT}
-            y={VIEWBOX_HEIGHT - 6}
-          >
-            {t("axis_reset", { date: formatAxisDate(windowEnd) })}
-          </text>
-        </svg>
+              {latestObserved && (
+                <g
+                  className="trend-current-mark"
+                  transform={`translate(${xCoordinate(
+                    latestObserved.observedAtSecs,
+                    windowStart,
+                    windowEnd,
+                  )} ${yCoordinate(latestObserved.utilization)})`}
+                >
+                  <circle className="trend-observed-halo" r="8" fill={currentCss} />
+                  <circle
+                    className="trend-observed-point"
+                    r="3.4"
+                    fill={currentCss}
+                  />
+                </g>
+              )}
+              {showExhaustion && projectedEnd && (
+                <circle
+                  className="trend-exhaustion-point"
+                  cx={xCoordinate(
+                    projectedEnd.observedAtSecs,
+                    windowStart,
+                    windowEnd,
+                  )}
+                  cy={yCoordinate(100)}
+                  r="3.1"
+                />
+              )}
+
+              {hover && (
+                <g className="trend-hover-mark" data-testid="trend-hover-mark">
+                  <line
+                    className="trend-hover-line"
+                    x1={hover.x}
+                    x2={hover.x}
+                    y1={PLOT_TOP + 2}
+                    y2={PLOT_TOP + PLOT_HEIGHT}
+                  />
+                  <circle
+                    className="trend-hover-point"
+                    cx={hover.x}
+                    cy={hover.y}
+                    r="3.6"
+                    fill={hoverCss}
+                  />
+                </g>
+              )}
+            </svg>
+            {hoverTip ? (
+              <div id={tipId} role="tooltip" className="trend-hover-tip">
+                {hoverTip}
+              </div>
+            ) : null}
+          </div>
+          <div className="usage-trend-x" aria-hidden="true">
+            <span className="trend-date-label start">
+              {formatAxisDate(windowStart)}
+            </span>
+            <span className="trend-date-label end">
+              {t("axis_reset", { date: formatAxisDate(windowEnd) })}
+            </span>
+          </div>
+        </div>
       </figure>
       <TrendReport estimate={estimate} nowSecs={nowSecs} t={t} />
     </div>
@@ -244,7 +323,15 @@ function TrendReport({
   return (
     <div className="trend-report" role="status">
       <p className="trend-report-primary">{report.primary}</p>
-      {report.detail ? <p className="trend-report-detail">{report.detail}</p> : null}
+      <p
+        className={
+          report.detail
+            ? "trend-report-detail"
+            : "trend-report-detail trend-report-detail-spacer"
+        }
+      >
+        {report.detail ?? "\u00a0"}
+      </p>
     </div>
   );
 }
@@ -252,6 +339,47 @@ function TrendReport({
 interface PlotPoint {
   x: number;
   y: number;
+}
+
+function sampleAtPointer(
+  svg: SVGSVGElement,
+  clientX: number,
+  observedPoints: UsageChartPoint[],
+  projectedPoints: UsageChartPoint[],
+  windowStart: number,
+  windowEnd: number,
+  nowSecs: number,
+): HoverSample | null {
+  const rect = svg.getBoundingClientRect();
+  if (rect.width <= 0) return null;
+  const svgX = Math.min(
+    VIEWBOX_WIDTH,
+    Math.max(0, ((clientX - rect.left) / rect.width) * VIEWBOX_WIDTH),
+  );
+  const nowX = xCoordinate(nowSecs, windowStart, windowEnd);
+  const useProjected = svgX > nowX && projectedPoints.length > 0;
+  const series = useProjected ? projectedPoints : observedPoints;
+  const kind: HoverSample["kind"] = useProjected ? "projected" : "observed";
+  if (series.length === 0) return null;
+
+  let best = series[0];
+  let bestDist = Number.POSITIVE_INFINITY;
+  for (const point of series) {
+    const x = xCoordinate(point.observedAtSecs, windowStart, windowEnd);
+    const dist = Math.abs(x - svgX);
+    if (dist < bestDist) {
+      best = point;
+      bestDist = dist;
+    }
+  }
+
+  return {
+    x: xCoordinate(best.observedAtSecs, windowStart, windowEnd),
+    y: yCoordinate(best.utilization),
+    utilization: best.utilization,
+    atSecs: best.observedAtSecs,
+    kind,
+  };
 }
 
 function toPlotPoints(

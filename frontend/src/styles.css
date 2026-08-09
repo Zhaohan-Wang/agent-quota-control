@@ -50,6 +50,8 @@
   --row-gap: 12px;
   --sidebar-width: 220px;
   --window-inset: 10px;
+  /* Keep overlays clear of the native scrollbar strip. */
+  --scrollbar-reserve: 12px;
   --window-radius: 28px;
   --panel-radius: 10px;
   --inset-radius: 8px;
@@ -371,7 +373,8 @@ select {
   position: absolute;
   z-index: 20;
   top: 0;
-  right: 0;
+  /* Stay clear of the scrollbar; native thumbs cannot stack above overlays. */
+  right: var(--scrollbar-reserve);
   left: 0;
   display: flex;
   align-items: flex-start;
@@ -389,6 +392,9 @@ select {
   position: sticky;
   top: 0;
   z-index: 1;
+  /* Sticky is in-flow — use width, not right, to clear the scrollbar. */
+  width: calc(100% - var(--scrollbar-reserve));
+  max-width: calc(100% - var(--scrollbar-reserve));
   pointer-events: none;
   height: 66px;
   margin-bottom: -66px;
@@ -626,7 +632,9 @@ select {
       black 100%
     ),
     linear-gradient(#000, #000);
-  -webkit-mask-size: calc(100% - 10px) 100%, 10px 100%;
+  -webkit-mask-size:
+    calc(100% - var(--scrollbar-reserve)) 100%,
+    var(--scrollbar-reserve) 100%;
   -webkit-mask-position: 0 0, 100% 0;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-composite: source-over;
@@ -641,7 +649,9 @@ select {
       black 100%
     ),
     linear-gradient(#000, #000);
-  mask-size: calc(100% - 10px) 100%, 10px 100%;
+  mask-size:
+    calc(100% - var(--scrollbar-reserve)) 100%,
+    var(--scrollbar-reserve) 100%;
   mask-position: 0 0, 100% 0;
   mask-repeat: no-repeat;
   mask-composite: add;
@@ -713,6 +723,7 @@ select {
 .dashboard-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
+  grid-auto-rows: auto;
 }
 
 .settings-grid,
@@ -744,8 +755,10 @@ select {
 .quota-card {
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  min-width: 0;
+  height: auto;
   gap: 14px;
+  overflow: visible;
 }
 
 .panel.wide {
@@ -916,16 +929,171 @@ select {
   gap: 0;
 }
 
+.tier-pair,
+.tier-stack {
+  min-width: 0;
+}
+
+.tier-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 12px;
+  padding: 2px 0 4px;
+}
+
 .tier-row {
   display: grid;
   gap: 7px;
   min-height: 57px;
+  min-width: 0;
   padding: 13px 0;
   border-top: 1px solid var(--separator);
 }
 
 .tier-row:first-child {
   border-top: 0;
+}
+
+.tier-pair .tier-row,
+.tier-stack .tier-row,
+.tier-row-compact {
+  min-height: 0;
+  padding: 0;
+  border-top: 0;
+  gap: 5px;
+}
+
+.tier-row-compact .tier-meta {
+  align-items: center;
+  gap: 8px;
+}
+
+.tier-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.tier-heading .tier-label {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.tier-row-compact .tier-label > span {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tier-row-compact .tier-meta strong {
+  flex: 0 0 auto;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tier-reset {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted-2);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tier-reset-spacer {
+  visibility: hidden;
+}
+
+.usage-week {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 0 0;
+}
+
+.usage-week-embedded {
+  display: block;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
+  padding: 0;
+}
+
+.usage-week-track {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.usage-week-cells {
+  display: grid;
+  grid-template-columns: repeat(7, 11px);
+  gap: 3px;
+}
+
+.usage-week-cell {
+  width: 11px;
+  height: 11px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: var(--meter-track);
+  appearance: none;
+}
+
+.usage-week-cell:hover,
+.usage-week-cell:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--text) 28%, transparent);
+  outline-offset: 1px;
+}
+
+.usage-week-cell.level-1 {
+  background: color-mix(in srgb, var(--ok-fill) 28%, var(--meter-track));
+}
+
+.usage-week-cell.level-2 {
+  background: color-mix(in srgb, var(--ok-fill) 48%, var(--meter-track));
+}
+
+.usage-week-cell.level-3 {
+  background: color-mix(in srgb, var(--ok-fill) 72%, transparent);
+}
+
+.usage-week-cell.level-4 {
+  background: var(--ok-fill);
+}
+
+.usage-week-tip {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 6px);
+  z-index: 3;
+  max-width: 220px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface-tertiary);
+  box-shadow: var(--shadow-card);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.usage-week-caption {
+  color: var(--muted-2);
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .tier-label {
@@ -1024,6 +1192,7 @@ select {
 .usage-trend {
   display: grid;
   gap: 6px;
+  min-width: 0;
   padding-top: 4px;
 }
 
@@ -1068,13 +1237,106 @@ select {
   margin: 0;
 }
 
+.usage-trend-plot {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) 18px;
+  column-gap: 2px;
+  row-gap: 0;
+  min-width: 0;
+}
+
+.usage-trend-y {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 10px 0 4px;
+}
+
+.usage-trend-chart-shell {
+  position: relative;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+
 .usage-trend-chart {
   display: block;
   width: 100%;
   height: auto;
+  aspect-ratio: 320 / 120;
   overflow: visible;
+  touch-action: none;
 }
 
+.trend-hit-area {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.trend-hover-line {
+  stroke: var(--muted-2);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.trend-hover-point {
+  stroke: var(--surface);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.trend-hover-tip {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  z-index: 3;
+  max-width: min(220px, 100%);
+  padding: 4px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface-tertiary);
+  box-shadow: var(--shadow-card);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.usage-trend-x {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.trend-axis-label,
+.trend-date-label {
+  color: var(--muted-2);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.trend-date-label.end {
+  text-align: right;
+}
+
+/* Grid / now stay hairline in screen px — structural chrome, not data ink. */
 .trend-grid-line,
 .trend-now-line {
   vector-effect: non-scaling-stroke;
@@ -1091,12 +1353,16 @@ select {
   opacity: 0.55;
 }
 
+/*
+ * Data strokes + marker rings scale with the viewBox (no non-scaling-stroke).
+ * Otherwise wide cards grow circle radii in user units while line width stays
+ * pinned to ~2px — the dual-column balance breaks and looks spindly.
+ */
 .trend-observed-line,
 .trend-projected-line {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
 }
 
 .trend-observed-line {
@@ -1117,34 +1383,19 @@ select {
 .trend-observed-point {
   stroke: var(--surface);
   stroke-width: 1.5;
-  vector-effect: non-scaling-stroke;
 }
 
 .trend-exhaustion-point {
   fill: var(--danger);
   stroke: var(--surface);
   stroke-width: 1.5;
-  vector-effect: non-scaling-stroke;
-}
-
-.trend-axis-label,
-.trend-date-label {
-  fill: var(--muted-2);
-  font-family: inherit;
-  font-size: 9px;
-}
-
-.trend-axis-label {
-  text-anchor: end;
-}
-
-.trend-date-label.end {
-  text-anchor: end;
 }
 
 .trend-report {
   display: grid;
   gap: 2px;
+  min-width: 0;
+  min-height: 2.75em;
   padding-top: 2px;
 }
 
@@ -1156,6 +1407,7 @@ select {
   letter-spacing: -0.015em;
   line-height: 1.35;
   font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
 .trend-report-detail {
@@ -1163,10 +1415,16 @@ select {
   color: var(--muted);
   font-size: 11px;
   line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.trend-report-detail-spacer {
+  visibility: hidden;
 }
 
 .card-meta {
   margin-top: auto;
+  min-width: 0;
   padding-top: 12px;
   border-top: 1px solid var(--separator);
 }
@@ -1176,11 +1434,13 @@ select {
   margin-top: 0;
   color: var(--muted);
   font-size: 11px;
+  min-width: 0;
 }
 
 .card-meta-line {
   flex-wrap: wrap;
   row-gap: 2px;
+  min-width: 0;
 }
 
 .meta-sep {
@@ -1789,5 +2049,12 @@ select {
   .settings-grid.two,
   .account-form {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .tier-pair {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 }

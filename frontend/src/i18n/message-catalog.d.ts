@@ -62,6 +62,7 @@ export type MessageCatalog = {
     "proxy_down_detail": string;
     "quota_aria": string;
     "reset_at": string;
+    "reset_date": string;
     "reset_datetime": string;
     "reset_in": string;
     "span_minutes": string;
@@ -75,6 +76,8 @@ export type MessageCatalog = {
     "trend_detail_exhausted": string;
     "trend_detail_pace_flat": string;
     "trend_detail_pace_up": string;
+    "trend_hover_observed": string;
+    "trend_hover_projected": string;
     "trend_pending_body": string;
     "trend_pending_title": string;
     "trend_primary_at_reset": string;
@@ -85,6 +88,9 @@ export type MessageCatalog = {
     "trend_window_short": string;
     "unknown_time": string;
     "updated_at": string;
+    "usage_week_aria": string;
+    "usage_week_caption": string;
+    "usage_week_day_aria": string;
     "waiting_first_refresh": string;
   };
   "monitoring": {

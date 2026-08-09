@@ -1,4 +1,5 @@
-use crate::types::{QuotaTier, ServiceQuota, UsageSample};
+use crate::types::{QuotaTier, ServiceQuota, UsageSample, UsageWeekDay};
+use chrono::{Local, TimeZone};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Write;
@@ -7,6 +8,7 @@ use std::path::{Path, PathBuf};
 const HISTORY_VERSION: u32 = 1;
 const RETENTION_SECS: i64 = 8 * 86_400;
 const MAX_SAMPLES_PER_TIER: usize = 2_500;
+const WEEK_LATTICE_DAYS: i64 = 7;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -51,6 +53,83 @@ pub(crate) fn samples_for_tier(
             sample.service == service && sample.tier == tier.name && sample.reset_at == reset_at
         })
         .cloned()
+        .collect()
+}
+
+/// Last 7 local calendar days of weekly-tier burn (positive utilization deltas).
+pub(crate) fn week_burn_for_service(
+    document: &UsageHistoryDocument,
+    service: &str,
+    now_secs: i64,
+) -> Vec<UsageWeekDay> {
+    let Some(today_start) = local_day_start_secs(now_secs) else {
+        return empty_week(now_secs);
+    };
+
+    let mut weekly: Vec<&UsageSample> = document
+        .samples
+        .iter()
+        .filter(|sample| {
+            sample.service == service
+                && matches!(sample.tier.as_str(), "weekly_limit" | "seven_day")
+        })
+        .collect();
+    weekly.sort_by_key(|sample| sample.observed_at_secs);
+
+    (0..WEEK_LATTICE_DAYS)
+        .map(|offset| {
+            let day_index = WEEK_LATTICE_DAYS - 1 - offset;
+            let day_start = today_start - day_index * 86_400;
+            let day_end = day_start + 86_400;
+            let day_samples: Vec<&UsageSample> = weekly
+                .iter()
+                .copied()
+                .filter(|sample| {
+                    sample.observed_at_secs >= day_start && sample.observed_at_secs < day_end
+                })
+                .collect();
+            UsageWeekDay {
+                day_start_secs: day_start,
+                burn_pct: day_burn_pct(&day_samples),
+            }
+        })
+        .collect()
+}
+
+fn day_burn_pct(samples: &[&UsageSample]) -> f64 {
+    if samples.len() < 2 {
+        return 0.0;
+    }
+    let mut burn = 0.0;
+    let mut previous = samples[0].utilization;
+    for sample in samples.iter().skip(1) {
+        if sample.utilization >= previous {
+            burn += sample.utilization - previous;
+        }
+        previous = sample.utilization;
+    }
+    (burn * 10.0).round() / 10.0
+}
+
+fn local_day_start_secs(now_secs: i64) -> Option<i64> {
+    let now = Local.timestamp_opt(now_secs, 0).single()?;
+    let naive_midnight = now.date_naive().and_hms_opt(0, 0, 0)?;
+    Local
+        .from_local_datetime(&naive_midnight)
+        .single()
+        .map(|dt| dt.timestamp())
+}
+
+fn empty_week(now_secs: i64) -> Vec<UsageWeekDay> {
+    let today_start = local_day_start_secs(now_secs).unwrap_or(now_secs - (now_secs % 86_400));
+    (0..WEEK_LATTICE_DAYS)
+        .map(|offset| {
+            let day_index = WEEK_LATTICE_DAYS - 1 - offset;
+            UsageWeekDay {
+                day_start_secs: today_start - day_index * 86_400,
+                burn_pct: 0.0,
+            }
+        })
         .collect()
 }
 
@@ -235,6 +314,51 @@ mod tests {
         let document = load_history_from(&path);
 
         assert!(document.samples.is_empty());
+    }
+
+    #[test]
+    fn week_burn_sums_positive_deltas_across_reset_cycles() {
+        let today = local_day_start_secs(NOW).unwrap();
+        let document = UsageHistoryDocument {
+            version: 1,
+            samples: vec![
+                UsageSample {
+                    service: "account-a".to_string(),
+                    tier: "seven_day".to_string(),
+                    reset_at: "old".to_string(),
+                    observed_at_secs: today + 3_600,
+                    utilization: 10.0,
+                },
+                UsageSample {
+                    service: "account-a".to_string(),
+                    tier: "seven_day".to_string(),
+                    reset_at: "old".to_string(),
+                    observed_at_secs: today + 7_200,
+                    utilization: 18.0,
+                },
+                UsageSample {
+                    service: "account-a".to_string(),
+                    tier: "seven_day".to_string(),
+                    reset_at: "new".to_string(),
+                    observed_at_secs: today + 10_800,
+                    utilization: 2.0,
+                },
+                UsageSample {
+                    service: "account-a".to_string(),
+                    tier: "seven_day".to_string(),
+                    reset_at: "new".to_string(),
+                    observed_at_secs: today + 14_400,
+                    utilization: 5.0,
+                },
+            ],
+        };
+
+        let week = week_burn_for_service(&document, "account-a", NOW);
+        assert_eq!(week.len(), 7);
+        assert_eq!(week[6].day_start_secs, today);
+        // +8 before reset, then +3 after reset
+        assert_eq!(week[6].burn_pct, 11.0);
+        assert!(week.iter().take(6).all(|day| day.burn_pct == 0.0));
     }
 
     #[test]

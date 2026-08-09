@@ -1,15 +1,38 @@
-import { AlertTriangle, CheckCircle2, Network } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle2,
+  CircleDashed,
+  Network,
+  XCircle,
+  type LucideIcon,
+} from "lucide-react";
 import { useFormatter, useTranslations } from "../i18n";
 import type { Translator } from "../i18n/translate";
 import { proxyDetailLabel } from "../proxyDisplay";
-import type { CardSnapshot, QuotaEstimate, SufficiencyState } from "../types";
+import type {
+  CardSnapshot,
+  QuotaEstimate,
+  QuotaTier,
+  SufficiencyState,
+  UsageWeekDay,
+} from "../types";
 import { meterFillClass, usageToneClass } from "../usageColor";
 import { UsageTrendChart } from "./UsageTrendChart";
+import { UsageWeekHeatmap } from "./UsageWeekHeatmap";
 
 interface QuotaCardProps {
   card: CardSnapshot;
   iconSrc: string;
 }
+
+/** Icons track sufficiency meaning — never data-freshness alone. */
+const STATUS_ICONS: Record<SufficiencyState, LucideIcon> = {
+  enough: CheckCircle2,
+  tight: AlertCircle,
+  not_enough: XCircle,
+  unknown: CircleDashed,
+};
 
 export function QuotaCard({ card, iconSrc }: QuotaCardProps) {
   const t = useTranslations("dashboard");
@@ -17,12 +40,12 @@ export function QuotaCard({ card, iconSrc }: QuotaCardProps) {
   const estimateState = card.weeklyEstimate?.state ?? "unknown";
   const displayState = stateLabel(estimateState, t);
   const hasData = card.tiers.length > 0;
-  const isHealthy = card.status === "fresh" || card.status === "stale";
   const needsLogin = card.status === "login_expired";
   const waitingFirstRefresh = !hasData && !card.errorMessage;
   const showStatusBadge = !needsLogin && !waitingFirstRefresh;
   const statusTone = estimateState;
   const statusText = displayState;
+  const StatusIcon = STATUS_ICONS[estimateState];
   const weeklyTier = card.tiers.find((tier) =>
     ["weekly_limit", "seven_day"].includes(tier.name),
   );
@@ -33,9 +56,13 @@ export function QuotaCard({ card, iconSrc }: QuotaCardProps) {
       tier.name !== "seven_day" &&
       tier.name !== "five_hour",
   );
-  const orderedTiers = [weeklyTier, fiveHourTier, ...remainingTiers].filter(
-    (tier): tier is CardSnapshot["tiers"][number] => tier !== undefined,
-  );
+  const twinPrimary =
+    weeklyTier && fiveHourTier ? [weeklyTier, fiveHourTier] : null;
+  const stackedTiers = twinPrimary
+    ? remainingTiers
+    : [weeklyTier, fiveHourTier, ...remainingTiers].filter(
+        (tier): tier is QuotaTier => tier !== undefined,
+      );
   const showAccountName =
     normalizeIdentity(card.accountDisplayName) !==
     normalizeIdentity(card.serviceDisplayName);
@@ -44,6 +71,11 @@ export function QuotaCard({ card, iconSrc }: QuotaCardProps) {
     !!card.weeklyEstimate &&
     !needsLogin &&
     !trendCoversEstimate(card.weeklyEstimate);
+  const showWeekHeatmap =
+    hasData &&
+    !needsLogin &&
+    !!card.usageWeek &&
+    card.usageWeek.length > 0;
 
   return (
     <section
@@ -72,11 +104,7 @@ export function QuotaCard({ card, iconSrc }: QuotaCardProps) {
         </div>
         {showStatusBadge ? (
           <div className={`status-badge ${statusTone}`}>
-            {isHealthy ? (
-              <CheckCircle2 size={13} strokeWidth={1.75} aria-hidden />
-            ) : (
-              <AlertTriangle size={13} strokeWidth={1.75} aria-hidden />
-            )}
+            <StatusIcon size={13} strokeWidth={1.75} aria-hidden />
             {statusText}
           </div>
         ) : null}
@@ -93,30 +121,37 @@ export function QuotaCard({ card, iconSrc }: QuotaCardProps) {
       {waitingFirstRefresh && (
         <p className="muted quota-empty">{t("waiting_first_refresh")}</p>
       )}
-      {hasData && (
+      {hasData && twinPrimary && (
+        <div className="tier-pair">
+          {twinPrimary.map((tier) => (
+            <TierMeter
+              key={tier.name}
+              tier={tier}
+              compact
+              weekDays={
+                showWeekHeatmap && isWeeklyTier(tier.name)
+                  ? card.usageWeek
+                  : undefined
+              }
+              t={t}
+            />
+          ))}
+        </div>
+      )}
+      {hasData && stackedTiers.length > 0 && (
         <div className="tier-stack">
-          {orderedTiers.map((tier) => (
-            <div className="tier-row" key={tier.name}>
-              <div className="tier-meta">
-                <span className="tier-label">
-                  <span>{tierLabel(tier.name, t)}</span>
-                  {tier.resetsAt && (
-                    <small>
-                      （{formatResetLabel(tier.name, tier.resetsAt, t)}）
-                    </small>
-                  )}
-                </span>
-                <strong className={usageToneClass(tier.utilization)}>
-                  {Math.round(tier.utilization)}%
-                </strong>
-              </div>
-              <div className="meter" aria-label={`${tier.name} utilization`}>
-                <div
-                  className={meterFillClass(tier.utilization)}
-                  style={{ width: `${Math.min(tier.utilization, 100)}%` }}
-                />
-              </div>
-            </div>
+          {stackedTiers.map((tier) => (
+            <TierMeter
+              key={tier.name}
+              tier={tier}
+              compact
+              weekDays={
+                showWeekHeatmap && isWeeklyTier(tier.name)
+                  ? card.usageWeek
+                  : undefined
+              }
+              t={t}
+            />
           ))}
         </div>
       )}
@@ -163,6 +198,68 @@ export function QuotaCard({ card, iconSrc }: QuotaCardProps) {
       </div>
     </section>
   );
+}
+
+function TierMeter({
+  tier,
+  compact = false,
+  weekDays,
+  t,
+}: {
+  tier: QuotaTier;
+  compact?: boolean;
+  weekDays?: UsageWeekDay[] | null;
+  t: Translator<"dashboard">;
+}) {
+  const resetLabel = tier.resetsAt
+    ? formatResetLabel(tier.resetsAt, t)
+    : null;
+  const showWeek = !!weekDays && weekDays.length > 0;
+
+  return (
+    <div
+      className={
+        [
+          "tier-row",
+          compact ? "tier-row-compact" : null,
+          showWeek ? "tier-row-with-week" : null,
+        ]
+          .filter(Boolean)
+          .join(" ")
+      }
+    >
+      <div className="tier-meta">
+        <div className="tier-heading">
+          <span className="tier-label">
+            <span>{tierLabel(tier.name, t)}</span>
+          </span>
+          {showWeek ? <UsageWeekHeatmap days={weekDays} embedded /> : null}
+        </div>
+        <strong className={usageToneClass(tier.utilization)}>
+          {Math.round(tier.utilization)}%
+        </strong>
+      </div>
+      <div className="meter" aria-label={`${tier.name} utilization`}>
+        <div
+          className={meterFillClass(tier.utilization)}
+          style={{ width: `${Math.min(tier.utilization, 100)}%` }}
+        />
+      </div>
+      {compact || resetLabel ? (
+        <small
+          className={
+            resetLabel ? "tier-reset" : "tier-reset tier-reset-spacer"
+          }
+        >
+          {resetLabel ?? "\u00a0"}
+        </small>
+      ) : null}
+    </div>
+  );
+}
+
+function isWeeklyTier(name: string): boolean {
+  return name === "weekly_limit" || name === "seven_day";
 }
 
 function trendCoversEstimate(estimate: QuotaEstimate): boolean {
@@ -217,25 +314,12 @@ function formatDuration(seconds: number, t: Translator<"dashboard">): string {
   return t("duration_hours", { hours });
 }
 
-function formatResetTime(value: string, t: Translator<"dashboard">): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return t("unknown_time");
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  const hour = `${date.getHours()}`.padStart(2, "0");
-  const minute = `${date.getMinutes()}`.padStart(2, "0");
-  return t("reset_datetime", { month, day, hour, minute });
-}
-
+/** Same countdown phrasing for every tier meter (“Xh later reset”). */
 function formatResetLabel(
-  tierName: string,
   value: string,
   t: Translator<"dashboard">,
 ): string {
-  if (tierName === "five_hour") {
-    return t("reset_in", { duration: formatResetCountdown(value, t) });
-  }
-  return t("reset_at", { time: formatResetTime(value, t) });
+  return t("reset_in", { duration: formatResetCountdown(value, t) });
 }
 
 function formatResetCountdown(
@@ -245,8 +329,13 @@ function formatResetCountdown(
   const resetAt = new Date(value).getTime();
   if (Number.isNaN(resetAt)) return t("unknown_time");
   const seconds = Math.max(0, Math.ceil((resetAt - Date.now()) / 1000));
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.ceil((seconds % 3600) / 60);
+  const days = Math.floor(seconds / 86_400);
+  const hours = Math.floor((seconds % 86_400) / 3_600);
+  const minutes = Math.ceil((seconds % 3_600) / 60);
+  if (days > 0 && hours > 0) {
+    return t("duration_days_hours", { days, hours });
+  }
+  if (days > 0) return t("duration_days", { days });
   if (hours > 0 && minutes > 0) {
     return t("duration_hours_minutes", { hours, minutes });
   }
