@@ -6,13 +6,13 @@ const BUTTON_SELECTOR =
  * treatment. Keeps actions on click/release (Apple-style press preview).
  */
 export function installPressFeedback(root: ParentNode = document): () => void {
-  let pressed: HTMLElement | null = null;
+  let pressed: HTMLButtonElement | null = null;
   let clickTimer: number | undefined;
 
-  function targetButton(eventTarget: EventTarget | null): HTMLElement | null {
+  function targetButton(eventTarget: EventTarget | null): HTMLButtonElement | null {
     if (!(eventTarget instanceof Element)) return null;
-    const button = eventTarget.closest<HTMLElement>(BUTTON_SELECTOR);
-    if (!button || button.disabled) return null;
+    const button = eventTarget.closest(BUTTON_SELECTOR);
+    if (!(button instanceof HTMLButtonElement) || button.disabled) return null;
     return button;
   }
 
@@ -23,10 +23,12 @@ export function installPressFeedback(root: ParentNode = document): () => void {
     }
   }
 
-  function onPointerDown(event: PointerEvent) {
+  function onPointerDown(event: Event) {
+    // Cast: DOM typings want EventListener, while jsdom may lack PointerEvent.
+    const pointer = event as PointerEvent;
     // Some synthetic test events omit `button`; treat those as primary click.
-    if (event.button != null && event.button !== 0) return;
-    const button = targetButton(event.target);
+    if (pointer.button != null && pointer.button !== 0) return;
+    const button = targetButton(pointer.target);
     if (!button) return;
     clearClickTimer();
     if (pressed && pressed !== button) {
@@ -36,7 +38,7 @@ export function installPressFeedback(root: ParentNode = document): () => void {
     button.dataset.press = "hover";
   }
 
-  function onPointerUp(event: PointerEvent) {
+  function onPointerUp(event: Event) {
     if (!pressed || pressed.dataset.press !== "hover") {
       pressed = null;
       return;
