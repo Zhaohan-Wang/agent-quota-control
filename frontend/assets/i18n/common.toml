@@ -1,14 +1,14 @@
 [app_name]
-en = "Agent Quota Control"
-zh-CN = "Agent 配额控制台"
+en = "Agent Quota"
+zh-CN = "Agent 配额"
 
 [app_subtitle]
 en = "Usage & menu bar"
 zh-CN = "用量与菜单栏"
 
 [dashboard]
-en = "Overview"
-zh-CN = "概览"
+en = "Usage"
+zh-CN = "用量"
 
 [monitoring]
 en = "Monitoring"
@@ -91,8 +91,8 @@ en = "Loading data"
 zh-CN = "正在获取数据"
 
 [empty_accounts_title]
-en = "No monitored accounts"
-zh-CN = "尚无监控账号"
+en = "No accounts"
+zh-CN = "尚无账号"
 
 [empty_accounts_body]
 en = "Add a Kimi or Codex account in Monitoring to see its usage here."

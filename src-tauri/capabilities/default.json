@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Default desktop permissions for Agent Quota Control",
+  "description": "Default desktop permissions for Agent Quota",
   "windows": ["main"],
   "permissions": [
     "core:default",

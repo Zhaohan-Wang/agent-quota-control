@@ -375,14 +375,14 @@ describe("App", () => {
   it("does not expose the retired generic tools page", async () => {
     render(<App />);
 
-    await screen.findByRole("button", { name: "概览" });
+    await screen.findByRole("button", { name: "用量" });
     expect(screen.queryByRole("button", { name: "工具" })).not.toBeInTheDocument();
   });
 
   it("highlights navigation on press and changes pages on release", async () => {
     render(<App />);
 
-    const overview = await screen.findByRole("button", { name: "概览" });
+    const overview = await screen.findByRole("button", { name: "用量" });
     const settings = screen.getByRole("button", { name: "设置" });
     const kimiCard = screen.getByRole("region", { name: "Kimi 工作账号 配额" });
 
@@ -402,7 +402,7 @@ describe("App", () => {
   it("activates the safe-area blur after content scrolls", async () => {
     const { container } = render(<App />);
 
-    await screen.findByRole("button", { name: "概览" });
+    await screen.findByRole("button", { name: "用量" });
     const scroller = container.querySelector(".content-scroll") as HTMLDivElement;
     const edgeBlur = container.querySelector(".scroll-edge-effect");
     const controls = container.querySelector(".topbar-actions") as HTMLElement;
@@ -420,7 +420,7 @@ describe("App", () => {
 
   it("remounts the safe-area blur layers when window focus changes", async () => {
     const { container } = render(<App />);
-    await screen.findByRole("button", { name: "概览" });
+    await screen.findByRole("button", { name: "用量" });
     await waitFor(() => {
       expect(windowFocusMock.listeners.length).toBeGreaterThan(0);
     });
@@ -524,7 +524,7 @@ describe("App", () => {
     await user.selectOptions(language, "en");
 
     expect(await screen.findByRole("button", { name: "Settings" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Agent Quota Control" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Agent Quota" })).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Language" })).toHaveValue("en");
   });
 

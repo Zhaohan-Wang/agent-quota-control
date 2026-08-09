@@ -1,8 +1,8 @@
 {
   "common": {
-    "app_name": "Agent Quota Control",
+    "app_name": "Agent Quota",
     "app_subtitle": "Usage & menu bar",
-    "dashboard": "Overview",
+    "dashboard": "Usage",
     "monitoring": "Monitoring",
     "settings": "Settings",
     "refresh": "Refresh",
@@ -23,7 +23,7 @@
     "health_partial_unavailable": "Some accounts are temporarily unavailable",
     "health_refresh_failed": "Unable to refresh",
     "health_waiting": "Loading data",
-    "empty_accounts_title": "No monitored accounts",
+    "empty_accounts_title": "No accounts",
     "empty_accounts_body": "Add a Kimi or Codex account in Monitoring to see its usage here."
   },
   "dashboard": {
@@ -87,7 +87,7 @@
     "show_state_text": "Usage status",
     "menu_bar_toggle": "Show {label} in the menu bar",
     "accounts_title": "Accounts",
-    "accounts_hint": "Each account appears in Overview and can be selected in the desktop widget.",
+    "accounts_hint": "Each account appears in Usage and can be selected in the desktop widget.",
     "add_kimi": "Add Kimi Code account",
     "import_codex": "Import Codex account",
     "account_name": "Account name",

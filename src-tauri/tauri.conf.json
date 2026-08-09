@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Agent Quota Control",
+  "productName": "Agent Quota",
   "version": "0.2.4",
   "identifier": "io.ccswitch.agent-quota-control",
   "build": {
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Agent 配额控制台",
+        "title": "Agent 配额",
         "titleBarStyle": "Overlay",
         "trafficLightPosition": {
           "x": 18,

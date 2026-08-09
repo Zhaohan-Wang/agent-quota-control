@@ -43,8 +43,8 @@ en = "Accounts"
 zh-CN = "账号"
 
 [accounts_hint]
-en = "Each account appears in Overview and can be selected in the desktop widget."
-zh-CN = "每个账号都会显示在“概览”中，也可在桌面小组件中选择。"
+en = "Each account appears in Usage and can be selected in the desktop widget."
+zh-CN = "每个账号都会显示在“用量”中，也可在桌面小组件中选择。"
 
 [add_kimi]
 en = "Add Kimi Code account"

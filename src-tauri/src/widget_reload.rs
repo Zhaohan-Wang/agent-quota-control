@@ -36,11 +36,11 @@ mod tests {
     #[test]
     fn helper_lives_next_to_the_host_executable() {
         let executable =
-            Path::new("/Applications/Agent Quota Control.app/Contents/MacOS/agent-quota-control");
+            Path::new("/Applications/Agent Quota.app/Contents/MacOS/agent-quota-control");
         assert_eq!(
             helper_path_for(executable).unwrap(),
             Path::new(
-                "/Applications/Agent Quota Control.app/Contents/MacOS/agent-quota-widget-reload"
+                "/Applications/Agent Quota.app/Contents/MacOS/agent-quota-widget-reload"
             )
         );
     }
